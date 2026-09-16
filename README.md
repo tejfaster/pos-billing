@@ -1,929 +1,982 @@
-# POS Billing --- Hardware & Building Materials
+# POS Billing System
 
-A responsive web-based billing application for hardware and
-building-material businesses.
+A modern, responsive Point of Sale (POS) billing application designed for hardware and building-material businesses.
 
-The application is being built with **React, Vite, and Tailwind CSS**
-with the goal of working across phones, tablets, laptops, desktops, and
-different screen sizes.
+The application is being developed with a focus on simple billing, flexible product measurements, packaging/size variations, inventory management, customer management, and scalable architecture.
 
-> **Project status:** Early development / architecture restructuring\
-> The current version is a working prototype. The project is being
-> reorganized before adding larger features.
+---
 
-------------------------------------------------------------------------
+## 🚧 Project Status
 
-## Table of Contents
+The project is currently in the **frontend billing phase**.
 
--   [Project Overview](#project-overview)
--   [Current Workflow](#current-workflow)
--   [Planned Workflow](#planned-workflow)
--   [Technology Stack](#technology-stack)
--   [Project Structure](#project-structure)
--   [How the Current Application
-    Works](#how-the-current-application-works)
--   [Billing Data Flow](#billing-data-flow)
--   [Printing](#printing)
--   [Responsive Design](#responsive-design)
--   [Dark Mode](#dark-mode)
--   [Development Roadmap](#development-roadmap)
--   [Getting Started](#getting-started)
--   [Development Principles](#development-principles)
+### Currently implemented
 
-------------------------------------------------------------------------
+- Product search
+- Product selection
+- Add products to bill
+- Duplicate product quantity handling
+- Decimal quantities
+- Editable quantity
+- Editable rate
+- Automatic price calculation
+- Automatic bill total
+- Remove items
+- Start a new bill
+- Scrollable selected-item area
+- Responsive layout
+- Light mode
+- Dark mode
+- Text-size accessibility controls
+- A4 print layout
+- Customer / Form area on printed bill
+- Printed quantity
+- Printed rate
+- Printed price
+- Printed total
 
-## Project Overview
+### Currently being designed
 
-This project is a POS/billing application designed for a hardware and
-building-material shop.
+The next major architectural improvement is the product and measurement system:
 
-The first workflow focuses on creating a simple item list:
-
-1.  Search for a hardware item.
-2.  Select the item from a searchable dropdown.
-3.  Add it to the billing list.
-4.  Adjust quantity if required.
-5.  Remove items when necessary.
-6.  Print the list.
-7.  Manually write the rate on the printed document.
-
-The application is intentionally being kept simple at this stage.
-Automatic GST, amount calculations, and total calculations are not part
-of the new billing-list workflow.
-
-------------------------------------------------------------------------
-
-## Current Workflow
-
-The current prototype contains:
-
--   Product search
--   Product code search
--   Category filtering
--   Keyboard navigation in the search dropdown
--   Adding products to a selected-item list
--   Quantity increase/decrease
--   Removing items
--   Browser printing
--   A print-only layout
-
-The prototype currently keeps most of this functionality inside
-`src/App.jsx`.
-
-The product catalog currently contains categories such as:
-
--   Cement
--   Steel & Rebar
--   Bricks & Blocks
--   Sand & Aggregate
--   Plumbing
--   Electrical
--   Paint
--   Tools
--   Fasteners
-
-The product records currently contain:
-
-``` text
-id
-name
-code
-category
-unit
+```text
+Product
+   ↓
+Selling Options / Variants
+   ↓
+Units
+   ↓
+Unit Conversion
+   ↓
+Billing
+   ↓
+Inventory
 ```
 
-------------------------------------------------------------------------
+---
 
-## Planned Workflow
+# ✨ Features
 
-The UI is being simplified from a tile/card-based product interface to a
-searchable-dropdown workflow.
+## 🧾 Billing
 
-### Screen
+The current billing screen allows users to:
 
-``` text
-┌──────────────────────────────────────────┐
-│ Sharma Hardware & Building Materials     │
-│                                  Date    │
-├──────────────────────────────────────────┤
-│ 🔍 Search item...                        │
-│                                          │
-│ Search results                            │
-│ ┌──────────────────────────────────────┐ │
-│ │ OPC 53 Grade Cement                  │ │
-│ │ CEM-053 · Cement · bag (50kg)        │ │
-│ ├──────────────────────────────────────┤ │
-│ │ PPC Cement                           │ │
-│ │ CEM-PPC · Cement · bag (50kg)        │ │
-│ └──────────────────────────────────────┘ │
-├──────────────────────────────────────────┤
-│ Item List                                │
-│                                          │
-│ 1. OPC 53 Grade Cement              Qty 2│
-│ 2. TMT Bar 10mm Fe500               Qty 5│
-│ 3. PVC Pipe 1 inch                  Qty 3│
-│                                          │
-├──────────────────────────────────────────┤
-│               PRINT LIST                 │
-└──────────────────────────────────────────┘
+- Search for products
+- Search by product name or product code
+- Add products to the bill
+- Increase/decrease quantity
+- Enter decimal quantities
+- Enter custom rates
+- Automatically calculate item prices
+- Automatically calculate the bill total
+- Remove products
+- Start a new bill
+
+Example:
+
+```text
+Product             Qty       Rate       Price
+
+PPC Cement          1.6        23        36.80
+White Cement          1         7         7.00
+River Sand            1        87        87.00
+
+                                      Total: 130.80
 ```
 
-### Printed list
+---
 
-The printed document is intended to contain the selected items and
-quantities, with space for manually writing the rate.
+# 📏 Flexible Units & Product Packaging
 
-``` text
-SHARMA HARDWARE & BUILDING MATERIALS
+A major requirement of this POS is supporting real-world hardware and building-material measurements.
 
-Date: __________________
+A product should not necessarily be treated as a completely separate product for every package size.
 
----------------------------------------------------------
-S.No    Item                              Qty     Rate
----------------------------------------------------------
-1       OPC 53 Grade Cement               2       _______
+For example:
 
-2       TMT Bar 10mm Fe500                5       _______
-
-3       PVC Pipe 1 inch                   3       _______
-
----------------------------------------------------------
-```
-
-There will be:
-
--   No product tiles
--   No GST field
--   No automatic total
--   No automatic amount calculation
-
-------------------------------------------------------------------------
-
-## Technology Stack
-
-### Frontend
-
--   React
--   Vite
--   Tailwind CSS
--   JavaScript / JSX
-
-### Browser APIs
-
--   `window.print()` for printing
--   DOM events for keyboard and mouse interaction
-
-### Planned application capabilities
-
-The architecture is being prepared for future modules such as:
-
--   Billing
--   Products
--   Inventory
--   Customers
--   Suppliers
--   Bill history
--   Reports
--   Settings
--   Theme management
--   Data persistence
--   Backup/export
-
-------------------------------------------------------------------------
-
-# Project Structure
-
-The project is being reorganized into a feature-oriented structure.
-
-``` text
-pos-billing/
+```text
+OPC 53 Grade Cement
 │
-├── public/
+├── 50 kg Bag
+├── 25 kg Bag
+├── 10 kg Bag
+├── 1 kg Bag
+└── Loose / kg
+```
+
+All of these belong to the same product.
+
+---
+
+## Base Unit
+
+Each product will eventually have a base measurement unit.
+
+For example:
+
+```text
+Cement
+Base Unit: kg
+```
+
+Possible selling options:
+
+```text
+50 kg Bag
+25 kg Bag
+10 kg Bag
+1 kg Bag
+kg
+gm
+```
+
+Conversions can then be represented as:
+
+```text
+1 gm       = 0.001 kg
+1 kg       = 1 kg
+1 bag 1kg  = 1 kg
+1 bag 10kg = 10 kg
+1 bag 25kg = 25 kg
+1 bag 50kg = 50 kg
+```
+
+---
+
+## Different Products, Different Units
+
+The system should support different units depending on the product.
+
+### Cement
+
+```text
+kg
+gm
+bag
+```
+
+### Steel
+
+```text
+kg
+ton
+bundle
+```
+
+### Electrical Wire
+
+```text
+meter
+feet
+roll
+bundle
+```
+
+### Tiles
+
+```text
+piece
+box
+carton
+```
+
+### PVC Pipe
+
+```text
+meter
+piece
+bundle
+```
+
+### Paint
+
+```text
+liter
+ml
+bucket
+can
+```
+
+### Screws
+
+```text
+piece
+packet
+box
+carton
+```
+
+The final unit system will allow products to define which selling units they support.
+
+---
+
+# 📦 Product & Selling Options
+
+The planned product structure separates the actual product from its selling options.
+
+For example:
+
+```text
+Product
+└── OPC 53 Grade Cement
+
+Selling Options
+├── 50 kg Bag
+├── 25 kg Bag
+├── 10 kg Bag
+├── 1 kg Bag
+└── Loose / kg
+```
+
+Each selling option can eventually have:
+
+- Selling unit
+- Package size
+- Conversion to base unit
+- Default rate
+- Selling price
+- Inventory relationship
+
+Example:
+
+```text
+OPC 53 Grade Cement
+
+50 kg Bag
+Unit: bag
+Conversion: 50 kg
+Rate: ₹450
+
+25 kg Bag
+Unit: bag
+Conversion: 25 kg
+Rate: ₹240
+
+10 kg Bag
+Unit: bag
+Conversion: 10 kg
+Rate: ₹100
+
+Loose
+Unit: kg
+Conversion: 1 kg
+Rate: ₹11
+```
+
+---
+
+# 📊 Inventory Concept
+
+The future inventory system will use the base unit to calculate stock.
+
+For example:
+
+```text
+Inventory:
+Cement = 1000 kg
+```
+
+If a customer purchases:
+
+```text
+2 × 25 kg bags
+```
+
+The inventory calculation becomes:
+
+```text
+1000 kg
+- 50 kg
+-------
+950 kg
+```
+
+If another customer purchases:
+
+```text
+3 kg
+```
+
+Then:
+
+```text
+950 kg
+- 3 kg
+------
+947 kg
+```
+
+This allows the system to support both packaged and measured sales.
+
+---
+
+# 🖥️ Current UI
+
+The current billing interface contains:
+
+```text
+Create Bill
+
+Search item name or code...
+
+Selected Items
+
+┌─────────────────────────────────────────────┐
+│ #   Item              Qty    Rate    Price  │
+├─────────────────────────────────────────────┤
+│ 1   OPC Cement         2      12      ₹24   │
+│ 2   TMT Bar            3      43     ₹129   │
+│ 3   Grinder            1      21      ₹21   │
+└─────────────────────────────────────────────┘
+
+Total                                  ₹174
+
+              Print Item List
+```
+
+The selected-items area has its own scroll so that adding many products does not cause the entire application page to scroll.
+
+---
+
+# 🌙 Theme & Accessibility
+
+The application currently supports:
+
+## Light Mode
+
+```text
+Light theme
+```
+
+## Dark Mode
+
+```text
+Dark theme
+```
+
+## Text Size
+
+Users can select:
+
+```text
+A−
+A
+A+
+A++
+```
+
+The selected text size is stored locally so the preference remains available after refreshing the application.
+
+---
+
+# 🖨️ Printing
+
+The application has a dedicated printable bill layout.
+
+The normal application interface is hidden during printing.
+
+The printed layout contains:
+
+```text
+Date: 16/09/2026     Customer / Form: __________________________
+
+┌──────┬──────────────────────────────┬─────┬──────┬────────┐
+│ S.No │ Item                         │ Qty │ Rate │ Price  │
+├──────┼──────────────────────────────┼─────┼──────┼────────┤
+│  1   │ OPC 53 Grade Cement          │  2  │  12  │  24.00 │
+│  2   │ TMT Bar 12mm Fe500           │  3  │  43  │ 129.00 │
+│  3   │ Angle Grinder 4 inch         │  1  │  21  │  21.00 │
+└──────┴──────────────────────────────┴─────┴──────┴────────┘
+
+                                      Total: ₹174.00
+```
+
+The print layout is designed for A4 paper.
+
+---
+
+# 🏗️ Project Architecture
+
+The application follows a feature-oriented structure.
+
+```text
+src/
 │
-├── src/
-│   │
-│   ├── assets/
-│   │
-│   ├── components/
-│   │   ├── common/
-│   │   └── layout/
-│   │
-│   ├── features/
-│   │   └── billing/
-│   │       ├── components/
-│   │       ├── hooks/
-│   │       └── utils/
-│   │
-│   ├── data/
-│   │
-│   ├── hooks/
-│   │
-│   ├── pages/
-│   │
-│   ├── utils/
-│   │
-│   ├── context/
-│   │
-│   ├── App.jsx
-│   ├── index.css
-│   └── main.jsx
+├── assets/
 │
-├── package.json
-├── package-lock.json
-├── vite.config.js
-├── index.html
-└── README.md
+├── components/
+│   ├── common/
+│   │   └── AccessibilityControls.jsx
+│   │
+│   └── layout/
+│       ├── Header.jsx
+│       └── MainLayout.jsx
+│
+├── context/
+│   └── ThemeContext.jsx
+│
+├── data/
+│   └── products.js
+│
+├── features/
+│   └── billing/
+│       ├── components/
+│       │   ├── BillPrint.jsx
+│       │   ├── ItemList.jsx
+│       │   ├── ItemRow.jsx
+│       │   └── ItemSearch.jsx
+│       │
+│       └── hooks/
+│           └── useBilling.js
+│
+├── hooks/
+│
+├── pages/
+│   └── Billing.jsx
+│
+├── utils/
+│
+├── App.jsx
+├── index.css
+└── main.jsx
 ```
 
-------------------------------------------------------------------------
+---
 
-## Folder Responsibilities
+# 🧩 Architecture Principles
 
-### `src/assets/`
+The project is structured so that features can grow without putting everything into one large component.
 
-Stores static frontend assets.
+### Pages
 
-Examples:
+Pages are responsible for composing complete screens.
 
-``` text
-assets/
-├── logo.svg
-├── images/
-└── icons/
+```text
+pages/
+└── Billing.jsx
 ```
 
-------------------------------------------------------------------------
+### Features
 
-### `src/components/common/`
+Feature-specific functionality lives inside its feature folder.
 
-Reusable UI components that can be used by multiple features.
-
-Examples:
-
-``` text
-Button
-Input
-Dropdown
-Modal
-LoadingSpinner
-```
-
-These components should not contain billing-specific business logic.
-
-------------------------------------------------------------------------
-
-### `src/components/layout/`
-
-Application-level layout components.
-
-Examples:
-
-``` text
-Header
-Sidebar
-MobileNavigation
-PageContainer
-```
-
-These components control the overall application shell.
-
-------------------------------------------------------------------------
-
-### `src/features/billing/`
-
-Contains everything specifically related to billing.
-
-``` text
+```text
 features/
 └── billing/
-    ├── components/
-    │   ├── ItemSearch.jsx
-    │   ├── ItemList.jsx
-    │   ├── ItemRow.jsx
-    │   └── PrintList.jsx
-    │
-    ├── hooks/
-    │   └── useBilling.js
-    │
-    └── utils/
-        └── printBillingList.js
 ```
 
-This separation is important because billing will eventually become one
-of several major application features.
+### Components
 
-------------------------------------------------------------------------
+Reusable UI components live under:
 
-### `src/data/`
+```text
+components/
+```
 
-Static or initial application data.
+### Context
 
-The product catalog will be moved here:
+Global application state such as theme and accessibility preferences lives under:
 
-``` text
-src/data/products.js
+```text
+context/
+```
+
+### Data
+
+Temporary/static product data currently lives under:
+
+```text
+data/
+```
+
+This will eventually be replaced or supplemented by backend/database data.
+
+---
+
+# 🔄 Billing Data Flow
+
+The current billing flow is:
+
+```text
+Product Data
+     ↓
+Item Search
+     ↓
+Add Product
+     ↓
+Billing State
+     ↓
+Item List
+     ↓
+Quantity + Rate
+     ↓
+Price Calculation
+     ↓
+Total Calculation
+     ↓
+Print
+```
+
+The billing state is managed through:
+
+```text
+features/billing/hooks/useBilling.js
+```
+
+---
+
+# 🧮 Calculation Logic
+
+For each item:
+
+```text
+Price = Quantity × Rate
 ```
 
 Example:
 
-``` js
-export const PRODUCTS = [
-  {
-    id: 1,
-    name: "OPC 53 Grade Cement",
-    code: "CEM-053",
-    cat: "Cement",
-    unit: "bag (50kg)"
-  }
-];
+```text
+Quantity = 1.5
+Rate = ₹23
+
+Price = 1.5 × 23
+      = ₹34.50
 ```
 
-As the application grows, this data can later be replaced or
-supplemented by a backend/database.
+The total is calculated as:
 
-------------------------------------------------------------------------
-
-### `src/hooks/`
-
-General-purpose React hooks shared across multiple features.
-
-Examples:
-
-``` text
-useLocalStorage.js
-useMediaQuery.js
-useDebounce.js
+```text
+Total = Sum of all item prices
 ```
 
-Feature-specific hooks should remain inside their feature folder.
+The total remains blank until every selected item has a valid rate.
 
-For example:
+This prevents incomplete bills from displaying a misleading total.
 
-``` text
-features/billing/hooks/useBilling.js
-```
+---
 
-------------------------------------------------------------------------
+# 🛣️ Development Roadmap
 
-### `src/pages/`
+## Phase 1 — Billing Foundation
 
-Application-level pages/screens.
+- [x] Product search
+- [x] Product selection
+- [x] Add items
+- [x] Remove items
+- [x] Quantity controls
+- [x] Decimal quantities
+- [x] Editable rate
+- [x] Price calculation
+- [x] Total calculation
+- [x] New Bill
+- [x] Responsive layout
+- [x] Internal item scrolling
 
-Initial planned pages:
+---
 
-``` text
-Billing.jsx
-Products.jsx
-Customers.jsx
-Bills.jsx
-Settings.jsx
-```
+## Phase 2 — UI & Accessibility
 
-A page should compose components and features rather than contain all
-business logic itself.
+- [x] Light mode
+- [x] Dark mode
+- [x] Text-size controls
+- [x] Responsive design
+- [x] Compact billing layout
+- [x] Print-friendly layout
 
-------------------------------------------------------------------------
+---
 
-### `src/utils/`
+## Phase 3 — Product & Measurement System
 
-General utilities that are not specific to one feature.
+- [ ] Product model redesign
+- [ ] Product variants / selling options
+- [ ] Unit system
+- [ ] Base units
+- [ ] Unit conversion
+- [ ] Package sizes
+- [ ] Product-specific units
+- [ ] Selling-option-specific rates
 
-Examples:
+Example:
 
-``` text
-formatDate.js
-storage.js
-formatCurrency.js
-```
-
-Billing-only utilities belong in:
-
-``` text
-features/billing/utils/
-```
-
-------------------------------------------------------------------------
-
-### `src/context/`
-
-Global React context/state.
-
-This will be useful for things such as:
-
-``` text
-Theme
-Application settings
-User/session information
-```
-
-For example:
-
-``` text
-ThemeContext.jsx
-```
-
-can eventually manage:
-
-``` text
-Light
-Dark
-System
-```
-
-------------------------------------------------------------------------
-
-## How the Current Application Works
-
-The current prototype has a main component called `HardwareItemList`.
-
-It maintains:
-
-``` js
-const [category, setCategory] = useState("All");
-const [items, setItems] = useState([]);
-```
-
-### Product search
-
-`ProductSearch` maintains its own search state:
-
-``` text
-query
-open
-activeIndex
-```
-
-The search filters products by:
-
--   Product name
--   Product code
--   Selected category
-
-The dropdown also supports keyboard navigation:
-
-``` text
-Arrow Down → next item
-Arrow Up   → previous item
-Enter      → select item
-Escape     → close dropdown
-```
-
-------------------------------------------------------------------------
-
-## Adding Items
-
-When an item is selected:
-
-``` text
-ProductSearch
-      │
-      ▼
-    onAdd()
-      │
-      ▼
-HardwareItemList
-      │
-      ▼
-items state
-```
-
-If the product is already present, the current implementation increases
-its quantity.
-
-Otherwise, a new item is added with:
-
-``` js
-qty: 1
-```
-
-------------------------------------------------------------------------
-
-## Quantity Management
-
-Each selected item currently supports:
-
-``` text
-−   quantity   +
-```
-
-When quantity reaches zero, the item is removed from the list.
-
-There is also an explicit `Remove` action.
-
-The new architecture will keep this behavior inside the billing feature
-rather than the main `App.jsx`.
-
-------------------------------------------------------------------------
-
-# Billing Data Flow
-
-The intended architecture is:
-
-``` text
-                 Product Data
-                      │
-                      ▼
-              ┌───────────────┐
-              │ Item Search   │
-              └───────┬───────┘
-                      │
-                 Select item
-                      │
-                      ▼
-              ┌───────────────┐
-              │ Billing State │
-              └───────┬───────┘
-                      │
-                      ▼
-              ┌───────────────┐
-              │  Item List    │
-              └───────┬───────┘
-                      │
-             ┌────────┴────────┐
-             ▼                 ▼
-        Change Qty          Remove
-             │                 │
-             └────────┬────────┘
-                      ▼
-              ┌───────────────┐
-              │ Print List    │
-              └───────────────┘
-```
-
-The goal is to keep state management separate from presentation.
-
-------------------------------------------------------------------------
-
-# Printing
-
-The current prototype uses the browser's printing API:
-
-``` js
-window.print();
-```
-
-The application has separate screen and print views.
-
-CSS controls which elements are visible when printing:
-
-``` css
-@media print {
-  .no-print {
-    display: none !important;
-  }
-
-  .print-only {
-    display: block !important;
-  }
-}
-```
-
-The planned implementation will move printing-related logic and styles
-out of the main application component.
-
-------------------------------------------------------------------------
-
-# Responsive Design
-
-The application is intended to work on:
-
-``` text
-📱 Phone
+```text
+Product
    ↓
-📱 Tablet
+Selling Option
    ↓
-💻 Laptop
+Unit
    ↓
-🖥️ Desktop
+Conversion
    ↓
-🖥️ Large monitor
+Rate
 ```
 
-The application should not depend on a fixed desktop width.
+---
 
-Responsive design principles:
+## Phase 4 — Billing Improvements
 
--   Mobile-first layouts
--   Flexible widths
--   Responsive spacing
--   Touch-friendly controls
--   Keyboard accessibility where appropriate
--   Avoid unnecessary horizontal scrolling
--   Adaptive navigation
--   Responsive typography
--   Print-specific layout
+- [ ] Customer / Form field in UI
+- [ ] Bill number
+- [ ] Sticky item-table header
+- [ ] Faster keyboard workflow
+- [ ] Improved product selection
+- [ ] Better bill validation
+- [ ] Bill draft handling
 
-The current prototype uses a narrow maximum-width container. This will
-be replaced with a responsive application shell during restructuring.
+---
 
-------------------------------------------------------------------------
+## Phase 5 — Product Management
 
-# Dark Mode
+- [ ] Product list
+- [ ] Add product
+- [ ] Edit product
+- [ ] Delete product
+- [ ] Categories
+- [ ] Product codes
+- [ ] Units
+- [ ] Selling options
+- [ ] Default rates
+- [ ] Package sizes
 
-Dark mode is planned as a first-class application feature.
+---
 
-Instead of hard-coding light-theme colors throughout components, the
-application will use semantic theme variables.
+## Phase 6 — Customer Management
 
-Conceptually:
+- [ ] Customer list
+- [ ] Add customer
+- [ ] Edit customer
+- [ ] Search customers
+- [ ] Customer history
+- [ ] Customer-wise bills
 
-``` text
-Light Theme
-    │
-    ├── background
-    ├── surface
-    ├── foreground
-    ├── border
-    └── muted
+---
 
-Dark Theme
-    │
-    ├── background
-    ├── surface
-    ├── foreground
-    ├── border
-    └── muted
+## Phase 7 — Bill History
+
+- [ ] Save bills
+- [ ] Bill history
+- [ ] View bill
+- [ ] Reprint bill
+- [ ] Search bills
+- [ ] Filter by date
+- [ ] Filter by customer
+- [ ] Bill details
+
+---
+
+## Phase 8 — Inventory
+
+- [ ] Stock management
+- [ ] Stock in
+- [ ] Stock out
+- [ ] Base-unit inventory
+- [ ] Package conversion
+- [ ] Loose quantity handling
+- [ ] Low-stock alerts
+- [ ] Stock history
+
+---
+
+## Phase 9 — Payments & Credit
+
+- [ ] Cash payments
+- [ ] UPI
+- [ ] Card
+- [ ] Bank transfer
+- [ ] Credit sales
+- [ ] Paid amount
+- [ ] Outstanding amount
+- [ ] Payment history
+
+---
+
+## Phase 10 — Reports
+
+- [ ] Daily sales
+- [ ] Monthly sales
+- [ ] Product sales
+- [ ] Customer sales
+- [ ] Payment reports
+- [ ] Outstanding reports
+- [ ] Inventory reports
+- [ ] Stock movement reports
+
+---
+
+## Phase 11 — Backend
+
+The frontend will eventually connect to a backend API.
+
+Planned architecture:
+
+```text
+React Frontend
+      ↓
+Backend API
+      ↓
+Business Logic
+      ↓
+PostgreSQL
 ```
 
-This allows components to use semantic colors instead of knowing the
-exact color values of a particular theme.
+The exact backend framework and API architecture will be decided when the frontend data model is stable.
 
-Planned theme modes:
+---
 
-``` text
-Light
-Dark
-System
+# 🗄️ Planned Data Model
+
+The future system will likely contain entities such as:
+
+```text
+Product
+Category
+Unit
+SellingOption
+Customer
+Bill
+BillItem
+Inventory
+StockMovement
+Payment
+User
 ```
 
-------------------------------------------------------------------------
+Relationships will eventually resemble:
 
-# Development Roadmap
-
-## Phase 1 --- Architecture
-
--   [x] Create initial Vite + React project
--   [x] Build working billing prototype
--   [ ] Restructure `src`
--   [ ] Separate product data
--   [ ] Create billing page
--   [ ] Extract billing components
--   [ ] Separate state management
--   [ ] Create reusable UI components
-
-## Phase 2 --- Responsive UI
-
--   [ ] Mobile layout
--   [ ] Tablet layout
--   [ ] Desktop layout
--   [ ] Responsive navigation
--   [ ] Touch-friendly controls
--   [ ] Accessibility improvements
-
-## Phase 3 --- Billing
-
--   [ ] Searchable item dropdown
--   [ ] Selected item list
--   [ ] Quantity management
--   [ ] Item removal
--   [ ] Clean print layout
--   [ ] Manual rate fields/spaces
--   [ ] Remove GST calculation
--   [ ] Remove automatic total calculation
-
-## Phase 4 --- Theme
-
--   [ ] Theme variables
--   [ ] Light mode
--   [ ] Dark mode
--   [ ] System theme detection
--   [ ] Theme preference persistence
-
-## Phase 5 --- Product Management
-
--   [ ] Product list
--   [ ] Add product
--   [ ] Edit product
--   [ ] Delete product
--   [ ] Categories
--   [ ] Product search
--   [ ] Units
-
-## Phase 6 --- Inventory
-
--   [ ] Stock management
--   [ ] Purchases
--   [ ] Stock adjustments
--   [ ] Suppliers
--   [ ] Inventory history
-
-## Phase 7 --- Customers & Bills
-
--   [ ] Customer management
--   [ ] Bill history
--   [ ] Bill details
--   [ ] Search bills
--   [ ] Reprint bills
-
-## Phase 8 --- Reports
-
--   [ ] Sales reports
--   [ ] Purchase reports
--   [ ] Inventory reports
--   [ ] Date filtering
--   [ ] Export
-
-## Phase 9 --- Persistence / Backend
-
-The application can initially use browser/local storage for simple data.
-
-Later, the architecture can support:
-
-``` text
-React
+```text
+Product
   │
-  ▼
-API
+  ├── Category
   │
-  ▼
-Backend
-  │
-  ▼
-Database
+  └── Selling Options
+         │
+         ├── Unit
+         ├── Package Size
+         ├── Conversion
+         └── Rate
 ```
 
-The frontend should not need to be completely rewritten when persistent
-storage is introduced.
+And:
 
-------------------------------------------------------------------------
+```text
+Customer
+   │
+   └── Bills
+          │
+          └── Bill Items
+                 │
+                 └── Products / Selling Options
+```
 
-# Getting Started
+---
+
+# 🛠️ Technology Stack
+
+## Frontend
+
+- React
+- Vite
+- Tailwind CSS
+- JavaScript / JSX
+
+## Current State Management
+
+- React hooks
+- React Context
+
+## Planned Backend
+
+- REST API or equivalent API architecture
+- PostgreSQL
+
+The final backend technology will be selected after the frontend data model and business rules are finalized.
+
+---
+
+# 🚀 Getting Started
 
 ## Install dependencies
 
-``` bash
+```bash
 npm install
 ```
 
 ## Start development server
 
-``` bash
+```bash
 npm run dev
 ```
 
-Vite will provide a local development URL in the terminal.
+The application will normally be available at:
+
+```text
+http://localhost:5173
+```
 
 ## Build for production
 
-``` bash
+```bash
 npm run build
 ```
 
 ## Preview production build
 
-``` bash
+```bash
 npm run preview
 ```
 
-------------------------------------------------------------------------
+---
 
-# Development Principles
+# 📁 Important Files
 
-### 1. Keep `App.jsx` small
+### Application entry
 
-`App.jsx` should primarily define the application's top-level structure.
-
-Avoid putting large business logic, product catalogs, or
-feature-specific UI directly inside it.
-
-------------------------------------------------------------------------
-
-### 2. Keep features isolated
-
-Billing-related code belongs inside:
-
-``` text
-features/billing/
+```text
+src/main.jsx
 ```
 
-Future inventory code belongs inside:
+### Main application
 
-``` text
-features/inventory/
+```text
+src/App.jsx
 ```
 
-Future product-management code belongs inside:
+### Billing page
 
-``` text
-features/products/
+```text
+src/pages/Billing.jsx
 ```
 
-This makes the application easier to maintain as it grows.
+### Billing state
 
-------------------------------------------------------------------------
-
-### 3. Prefer reusable components
-
-If a component can reasonably be used by multiple features, place it
-under:
-
-``` text
-components/common/
+```text
+src/features/billing/hooks/useBilling.js
 ```
 
-Do not duplicate the same UI logic across multiple pages.
+### Product search
 
-------------------------------------------------------------------------
-
-### 4. Separate UI from business logic
-
-Prefer:
-
-``` text
-UI component
-     │
-     ▼
-Hook / state
-     │
-     ▼
-Utility / service
+```text
+src/features/billing/components/ItemSearch.jsx
 ```
 
-rather than putting everything inside one component.
+### Billing item list
 
-------------------------------------------------------------------------
-
-### 5. Design responsive behavior from the beginning
-
-Do not build a desktop-only application and try to fix mobile later.
-
-Every major UI component should be considered for:
-
-``` text
-Mobile
-Tablet
-Desktop
+```text
+src/features/billing/components/ItemList.jsx
 ```
 
-------------------------------------------------------------------------
+### Individual billing row
 
-### 6. Design for future data sources
+```text
+src/features/billing/components/ItemRow.jsx
+```
 
-The first product catalog can be local/static.
+### Printable bill
 
-The architecture should still allow it to eventually come from:
+```text
+src/features/billing/components/BillPrint.jsx
+```
 
-``` text
-Local data
-    ↓
-LocalStorage
-    ↓
-API
-    ↓
+### Product data
+
+```text
+src/data/products.js
+```
+
+### Theme and text-size settings
+
+```text
+src/context/ThemeContext.jsx
+```
+
+### Accessibility controls
+
+```text
+src/components/common/AccessibilityControls.jsx
+```
+
+### Global styles and print styles
+
+```text
+src/index.css
+```
+
+---
+
+# 🎯 Project Goal
+
+The goal is to build a practical POS system for hardware and building-material businesses where products can be sold in different:
+
+- Measurements
+- Units
+- Package sizes
+- Quantities
+- Selling formats
+
+The system should support situations such as:
+
+```text
+1 × 25 kg Bag
+```
+
+or:
+
+```text
+1 kg Loose
+```
+
+or:
+
+```text
+500 gm
+```
+
+while still treating them as the appropriate selling form of the same underlying product.
+
+The long-term goal is a scalable system covering:
+
+```text
+Billing
+   ↓
+Products
+   ↓
+Units & Conversions
+   ↓
+Inventory
+   ↓
+Customers
+   ↓
+Purchasing
+   ↓
+Payments
+   ↓
+Reports
+   ↓
 Database
 ```
 
-without coupling the UI directly to one data source.
+---
 
-------------------------------------------------------------------------
+# 📌 Development Approach
 
-### 7. Keep printing separate from screen UI
+The project is being developed incrementally.
 
-A printed bill/list has different requirements from an interactive
-screen.
+The approach is:
 
-The print layout should be independently controlled.
+1. Stabilize the billing experience.
+2. Define the correct product and unit data model.
+3. Build product management.
+4. Build customer and bill management.
+5. Add inventory.
+6. Add payments and credit.
+7. Add reports.
+8. Connect the application to a backend and database.
+9. Add authentication and permissions.
+10. Prepare the system for production use.
 
-------------------------------------------------------------------------
+The architecture should remain modular so new features can be added without rebuilding the existing billing functionality.
 
-## Current Architecture Goal
+---
 
-The long-term goal is:
+# 📄 License
 
-``` text
-                    POS BILLING APP
-                           │
-        ┌──────────────────┼──────────────────┐
-        │                  │                  │
-     Billing            Products          Inventory
-        │                  │                  │
-     Customers          Suppliers           Reports
-        │                  │                  │
-        └──────────────────┼──────────────────┘
-                           │
-                     Shared Components
-                           │
-                     Theme / Settings
-                           │
-                    Data / Persistence
-```
-
-The application will start small and grow module-by-module without
-making the core codebase difficult to maintain.
-
-------------------------------------------------------------------------
-
-## License
-
-License information will be added when the project is finalized for
-public distribution.
+This project is currently under development.
