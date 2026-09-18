@@ -1,3 +1,4 @@
+import { useLanguage } from "../../context/LanguageContext";
 import { useTheme } from "../../context/ThemeContext";
 
 export default function AccessibilityControls() {
@@ -8,43 +9,39 @@ export default function AccessibilityControls() {
     setTextSize,
   } = useTheme();
 
+  const { language, t } = useLanguage();
+
   const sizes = [
     {
       value: "small",
-      label: "A−",
-      title: "Small text",
+      label: language === "hi" ? "अ−" : "A−",
+      title: t("smallText"),
     },
     {
       value: "default",
-      label: "A",
-      title: "Default text",
+      label: language === "hi" ? "अ" : "A",
+      title: t("defaultText"),
     },
     {
       value: "large",
-      label: "A+",
-      title: "Large text",
+      label: language === "hi" ? "अ+" : "A+",
+      title: t("largeText"),
     },
     {
       value: "extraLarge",
-      label: "A++",
-      title: "Extra large text",
+      label: language === "hi" ? "अ++" : "A++",
+      title: t("extraLargeText"),
     },
   ];
 
   return (
     <div className="flex items-center gap-2">
-      {/* Text Size */}
       <div
         className="
-          flex
-          items-center
-          rounded-lg
-          border
-          border-[var(--border)]
-          bg-[var(--surface)]
-          p-1
+          flex items-center rounded-lg border
+          border-[var(--border)] bg-[var(--surface)] p-1
         "
-        aria-label="Text size"
+        aria-label={t("textSize")}
       >
         {sizes.map((size) => (
           <button
@@ -53,21 +50,10 @@ export default function AccessibilityControls() {
             title={size.title}
             aria-label={size.title}
             aria-pressed={textSize === size.value}
-            onClick={() =>
-              setTextSize(size.value)
-            }
+            onClick={() => setTextSize(size.value)}
             className={`
-              flex
-              h-8
-              min-w-8
-              items-center
-              justify-center
-              rounded-md
-              px-2
-              text-sm
-              font-medium
-              transition
-
+              flex h-8 min-w-8 items-center justify-center
+              rounded-md px-2 text-sm font-medium transition
               ${
                 textSize === size.value
                   ? "bg-[var(--foreground)] text-[var(--background)]"
@@ -80,34 +66,24 @@ export default function AccessibilityControls() {
         ))}
       </div>
 
-      {/* Theme */}
       <button
         type="button"
         onClick={toggleTheme}
         title={
           theme === "light"
-            ? "Switch to dark mode"
-            : "Switch to light mode"
+            ? t("switchToDarkMode")
+            : t("switchToLightMode")
         }
         aria-label={
           theme === "light"
-            ? "Switch to dark mode"
-            : "Switch to light mode"
+            ? t("switchToDarkMode")
+            : t("switchToLightMode")
         }
         className="
-          flex
-          h-10
-          w-10
-          items-center
-          justify-center
-          rounded-lg
-          border
-          border-[var(--border)]
-          bg-[var(--surface)]
-          text-[var(--foreground)]
-          transition
-          hover:bg-[var(--muted)]/10
-          active:scale-95
+          flex h-10 w-10 items-center justify-center rounded-lg
+          border border-[var(--border)] bg-[var(--surface)]
+          text-[var(--foreground)] transition
+          hover:bg-[var(--muted)]/10 active:scale-95
         "
       >
         {theme === "light" ? "☾" : "☀"}

@@ -5,6 +5,7 @@ import ItemList from "../features/billing/components/ItemList";
 import BillPrint from "../features/billing/components/BillPrint";
 import AccessibilityControls from "../components/common/AccessibilityControls";
 import useBilling from "../features/billing/hooks/useBilling";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Billing() {
   const {
@@ -18,6 +19,8 @@ export default function Billing() {
     total,
   } = useBilling();
 
+  const { t } = useLanguage();
+
   const [isPrinting, setIsPrinting] = useState(false);
 
   useEffect(() => {
@@ -28,13 +31,16 @@ export default function Billing() {
     window.addEventListener("afterprint", handleAfterPrint);
 
     return () => {
-      window.removeEventListener("afterprint", handleAfterPrint);
+      window.removeEventListener(
+        "afterprint",
+        handleAfterPrint
+      );
     };
   }, []);
 
   const handleNewBill = () => {
     const confirmed = window.confirm(
-      "Start a new bill? All selected items will be removed."
+      t("newBillConfirmation")
     );
 
     if (confirmed) {
@@ -56,7 +62,7 @@ export default function Billing() {
 
   return (
     <>
-      <div className="no-print h-dvh w-full overflow-hidden">
+      <div className="no-print h-full w-full overflow-hidden">
         <div
           className="
             mx-auto
@@ -72,7 +78,6 @@ export default function Billing() {
             lg:px-8
           "
         >
-          {/* Header */}
           <div
             className="
               mb-6
@@ -85,23 +90,21 @@ export default function Billing() {
           >
             <div>
               <h2 className="text-2xl font-semibold tracking-tight">
-                Create Bill
+                {t("createBill")}
               </h2>
 
               <p className="mt-1 text-sm text-[var(--muted)]">
-                Search and add items to your list.
+                {t("searchAndAddItems")}
               </p>
             </div>
 
             <AccessibilityControls />
           </div>
 
-          {/* Search */}
           <div className="shrink-0">
             <ItemSearch onAdd={addItem} />
           </div>
 
-          {/* Selected Items */}
           <section
             className="
               mt-8
@@ -111,7 +114,6 @@ export default function Billing() {
               flex-col
             "
           >
-            {/* Section Header */}
             <div
               className="
                 mb-3
@@ -124,11 +126,14 @@ export default function Billing() {
             >
               <div className="flex min-w-0 items-center gap-3">
                 <h3 className="text-lg font-semibold">
-                  Selected Items
+                  {t("selectedItems")}
                 </h3>
 
                 <span className="shrink-0 text-sm text-[var(--muted)]">
-                  {items.length} item{items.length !== 1 ? "s" : ""}
+                  {items.length}{" "}
+                  {items.length === 1
+                    ? t("item")
+                    : t("items")}
                 </span>
               </div>
 
@@ -144,12 +149,11 @@ export default function Billing() {
                     hover:underline
                   "
                 >
-                  New Bill
+                  {t("newBill")}
                 </button>
               )}
             </div>
 
-            {/* Scrollable Items Area */}
             <div
               className="
                 min-h-0
@@ -168,7 +172,6 @@ export default function Billing() {
               />
             </div>
 
-            {/* Total */}
             {items.length > 0 && (
               <div
                 className="
@@ -183,7 +186,7 @@ export default function Billing() {
                 "
               >
                 <span className="text-base font-semibold">
-                  Total
+                  {t("total")}
                 </span>
 
                 <span className="text-lg font-semibold">
@@ -196,7 +199,6 @@ export default function Billing() {
               </div>
             )}
 
-            {/* Print */}
             {items.length > 0 && (
               <div className="mt-6 shrink-0">
                 <button
@@ -220,8 +222,8 @@ export default function Billing() {
                   "
                 >
                   {isPrinting
-                    ? "Preparing Print..."
-                    : "Print Item List"}
+                    ? t("preparingPrint")
+                    : t("printItemList")}
                 </button>
               </div>
             )}
@@ -229,8 +231,7 @@ export default function Billing() {
         </div>
       </div>
 
-      {/* Printable Bill */}
-      <BillPrint items={items} total={total} />
+      <BillPrint items={items} />
     </>
   );
 }

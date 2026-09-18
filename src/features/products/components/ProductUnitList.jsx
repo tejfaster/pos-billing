@@ -1,3 +1,4 @@
+import { useLanguage } from "../../../context/LanguageContext";
 import { UNITS } from "../../../data/units";
 
 export default function ProductUnitList({
@@ -5,6 +6,8 @@ export default function ProductUnitList({
   onAddUnit,
   onRemoveUnit,
 }) {
+  const { t } = useLanguage();
+
   const availableUnits = UNITS.filter(
     (unit) => !selectedUnitIds.includes(unit.id)
   );
@@ -19,11 +22,11 @@ export default function ProductUnitList({
         <div className="flex items-center justify-between gap-4">
           <div>
             <h3 className="text-base font-semibold text-[var(--foreground)]">
-              Units
+              {t("units")}
             </h3>
 
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Select the units in which this product can be sold.
+              {t("selectProductUnits")}
             </p>
           </div>
 
@@ -53,16 +56,19 @@ export default function ProductUnitList({
               disabled:cursor-not-allowed
               disabled:opacity-50
             "
-            aria-label="Add product unit"
+            aria-label={t("addProductUnit")}
           >
             <option value="">
               {availableUnits.length === 0
-                ? "All units added"
-                : "+ Add Unit"}
+                ? t("allUnitsAdded")
+                : `+ ${t("addUnit")}`}
             </option>
 
             {availableUnits.map((unit) => (
-              <option key={unit.id} value={unit.id}>
+              <option
+                key={unit.id}
+                value={unit.id}
+              >
                 {unit.name} ({unit.shortName})
               </option>
             ))}
@@ -84,11 +90,11 @@ export default function ProductUnitList({
           "
         >
           <p className="text-sm font-medium text-[var(--foreground)]">
-            No units added
+            {t("noUnitsAdded")}
           </p>
 
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Add the units this product can be sold in.
+            {t("addProductUnitsDescription")}
           </p>
         </div>
       ) : (
@@ -117,8 +123,8 @@ export default function ProductUnitList({
               text-[var(--muted)]
             "
           >
-            <div>Unit</div>
-            <div>Short</div>
+            <div>{t("unit")}</div>
+            <div>{t("short")}</div>
             <div></div>
           </div>
 
@@ -148,8 +154,8 @@ export default function ProductUnitList({
               <button
                 type="button"
                 onClick={() => onRemoveUnit(unit.id)}
-                title={`Remove ${unit.name}`}
-                aria-label={`Remove ${unit.name}`}
+                title={`${t("remove")} ${unit.name}`}
+                aria-label={`${t("remove")} ${unit.name}`}
                 className="
                   flex
                   h-8
