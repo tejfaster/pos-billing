@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+
 import { PRODUCTS } from "../../../data/products";
 
 export default function ItemSearch({ onAdd }) {
@@ -16,8 +17,9 @@ export default function ItemSearch({ onAdd }) {
 
   /*
    * Filter products based on:
-   * - Item name
-   * - Item code
+   * - Product name
+   * - Product code
+   * - Brand
    * - Category
    */
   const results = useMemo(() => {
@@ -31,7 +33,8 @@ export default function ItemSearch({ onAdd }) {
       return (
         product.name.toLowerCase().includes(search) ||
         product.code.toLowerCase().includes(search) ||
-        product.cat.toLowerCase().includes(search)
+        product.brand?.toLowerCase().includes(search) ||
+        product.category.toLowerCase().includes(search)
       );
     }).slice(0, 40);
   }, [query]);
@@ -125,33 +128,22 @@ export default function ItemSearch({ onAdd }) {
         );
       }
 
-      return (
-        <span key={index}>
-          {part}
-        </span>
-      );
+      return <span key={index}>{part}</span>;
     });
   };
 
   /*
-   * Select an item.
+   * Select a product.
    */
   const selectItem = (product) => {
     if (!product) {
       return;
     }
 
-    // Add item to billing list.
     onAdd(product);
 
-    // Clear search.
     setQuery("");
-
-    // Reset keyboard selection.
     setActiveIndex(0);
-
-    // IMPORTANT:
-    // Close dropdown after selecting.
     setOpen(false);
 
     /*
@@ -226,7 +218,7 @@ export default function ItemSearch({ onAdd }) {
     }
 
     /*
-     * Select highlighted item.
+     * Select highlighted product.
      */
     if (event.key === "Enter") {
       event.preventDefault();
@@ -251,6 +243,7 @@ export default function ItemSearch({ onAdd }) {
       className="relative w-full"
     >
       {/* Search Input */}
+
       <input
         ref={inputRef}
         type="text"
@@ -261,7 +254,7 @@ export default function ItemSearch({ onAdd }) {
         }}
         onFocus={() => {
           /*
-           * After selecting an item, the input is
+           * After selecting a product, the input is
            * automatically focused but the dropdown
            * should remain closed.
            */
@@ -273,7 +266,7 @@ export default function ItemSearch({ onAdd }) {
           setOpen(true);
         }}
         onKeyDown={handleKeyDown}
-        placeholder="Search item name or code..."
+        placeholder="Search product name, code, brand..."
         autoComplete="off"
         role="combobox"
         aria-expanded={open}
@@ -304,6 +297,7 @@ export default function ItemSearch({ onAdd }) {
       />
 
       {/* Dropdown */}
+
       {open && (
         <div
           id="item-search-list"
@@ -324,6 +318,7 @@ export default function ItemSearch({ onAdd }) {
           "
         >
           {/* Empty State */}
+
           {results.length === 0 ? (
             <div
               className="
@@ -335,11 +330,11 @@ export default function ItemSearch({ onAdd }) {
               "
             >
               <div className="font-medium">
-                No items found
+                No products found
               </div>
 
               <div className="mt-1 text-xs">
-                Try a different item name or code.
+                Try a different product name, code, or brand.
               </div>
             </div>
           ) : (
@@ -369,7 +364,6 @@ export default function ItemSearch({ onAdd }) {
                   text-left
                   transition
                   last:border-b-0
-
                   ${
                     index === activeIndex
                       ? "bg-[var(--muted)]/10"
@@ -377,7 +371,8 @@ export default function ItemSearch({ onAdd }) {
                   }
                 `}
               >
-                {/* Item Name */}
+                {/* Product Name */}
+
                 <div
                   className="
                     truncate
@@ -389,7 +384,8 @@ export default function ItemSearch({ onAdd }) {
                   {highlightText(product.name)}
                 </div>
 
-                {/* Item Details */}
+                {/* Product Details */}
+
                 <div
                   className="
                     mt-1
@@ -399,10 +395,17 @@ export default function ItemSearch({ onAdd }) {
                   "
                 >
                   {highlightText(product.code)}
+
                   {" · "}
-                  {product.cat}
-                  {" · "}
-                  {product.unit}
+
+                  {product.category}
+
+                  {product.brand && (
+                    <>
+                      {" · "}
+                      {product.brand}
+                    </>
+                  )}
                 </div>
               </button>
             ))

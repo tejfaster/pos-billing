@@ -1,12 +1,30 @@
+import { useState } from "react";
+
 import MainLayout from "./components/layout/MainLayout";
 import Billing from "./pages/Billing";
+import Products from "./pages/Products";
 
-function App() {
+export default function App() {
+  const [currentPage, setCurrentPage] =
+    useState("billing");
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case "products":
+        return <Products />;
+
+      case "billing":
+      default:
+        return <Billing />;
+    }
+  };
+
   return (
-    <MainLayout>
-      <Billing />
+    <MainLayout
+      currentPage={currentPage}
+      onNavigate={setCurrentPage}
+    >
+      {renderPage()}
     </MainLayout>
   );
 }
-
-export default App;
