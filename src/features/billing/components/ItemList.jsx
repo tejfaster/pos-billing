@@ -1,4 +1,5 @@
 import ItemRow from "./ItemRow";
+import { useLanguage } from "../../../context/LanguageContext";
 
 export default function ItemList({
   items,
@@ -7,6 +8,8 @@ export default function ItemList({
   onChangeRate,
   onRemove,
 }) {
+  const { t } = useLanguage();
+
   if (items.length === 0) {
     return (
       <div
@@ -23,7 +26,7 @@ export default function ItemList({
           text-[var(--muted)]
         "
       >
-        Search and select an item to add it to the list.
+        {t("searchAndSelectItem")}
       </div>
     );
   }
@@ -40,8 +43,6 @@ export default function ItemList({
       "
     >
       <div className="min-w-[720px]">
-
-        {/* Header */}
         <div
           className="
             grid
@@ -59,19 +60,13 @@ export default function ItemList({
           "
         >
           <div>#</div>
-
-          <div>Item</div>
-
-          <div>Qty</div>
-
-          <div>Rate</div>
-
-          <div>Price</div>
-
+          <div>{t("item")}</div>
+          <div>{t("qty")}</div>
+          <div>{t("rate")}</div>
+          <div>{t("price")}</div>
           <div></div>
         </div>
 
-        {/* Items */}
         {items.map((item, index) => (
           <ItemRow
             key={item.id}

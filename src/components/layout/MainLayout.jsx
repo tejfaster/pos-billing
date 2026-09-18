@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import Sidebar from "./Sidebar";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function MainLayout({
   currentPage,
@@ -12,6 +13,9 @@ export default function MainLayout({
 
   const [mobileMenuOpen, setMobileMenuOpen] =
     useState(false);
+
+  const { language, setLanguage, t } =
+    useLanguage();
 
   return (
     <div
@@ -35,6 +39,7 @@ export default function MainLayout({
       <div className="flex min-w-0 flex-1 flex-col">
         <header
           className="
+            no-print
             flex
             h-16
             shrink-0
@@ -48,12 +53,11 @@ export default function MainLayout({
           "
         >
           <div className="flex items-center gap-3">
-            {/* Mobile menu button */}
-
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              aria-label="Open navigation"
+              aria-label={t("openNavigation")}
+              title={t("openNavigation")}
               className="
                 flex
                 h-9
@@ -73,8 +77,6 @@ export default function MainLayout({
               ☰
             </button>
 
-            {/* Desktop sidebar toggle */}
-
             <button
               type="button"
               onClick={() =>
@@ -84,13 +86,13 @@ export default function MainLayout({
               }
               aria-label={
                 sidebarCollapsed
-                  ? "Expand sidebar"
-                  : "Collapse sidebar"
+                  ? t("expandSidebar")
+                  : t("collapseSidebar")
               }
               title={
                 sidebarCollapsed
-                  ? "Expand sidebar"
-                  : "Collapse sidebar"
+                  ? t("expandSidebar")
+                  : t("collapseSidebar")
               }
               className="
                 hidden
@@ -114,12 +116,67 @@ export default function MainLayout({
             <div className="hidden sm:block">
               <div className="text-sm font-semibold">
                 {currentPage === "billing"
-                  ? "Billing"
+                  ? t("billing")
                   : currentPage === "products"
-                  ? "Products"
+                  ? t("products")
                   : currentPage}
               </div>
             </div>
+          </div>
+
+          <div
+            className="
+              flex
+              items-center
+              rounded-lg
+              border
+              border-[var(--border)]
+              bg-[var(--surface)]
+              p-1
+            "
+            aria-label="Language"
+          >
+            <button
+              type="button"
+              onClick={() => setLanguage("en")}
+              aria-pressed={language === "en"}
+              className={`
+                rounded-md
+                px-3
+                py-1.5
+                text-xs
+                font-medium
+                transition
+                ${
+                  language === "en"
+                    ? "bg-[var(--foreground)] text-[var(--background)]"
+                    : "text-[var(--muted)] hover:bg-[var(--muted)]/10"
+                }
+              `}
+            >
+              EN
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setLanguage("hi")}
+              aria-pressed={language === "hi"}
+              className={`
+                rounded-md
+                px-3
+                py-1.5
+                text-xs
+                font-medium
+                transition
+                ${
+                  language === "hi"
+                    ? "bg-[var(--foreground)] text-[var(--background)]"
+                    : "text-[var(--muted)] hover:bg-[var(--muted)]/10"
+                }
+              `}
+            >
+              हिंदी
+            </button>
           </div>
         </header>
 

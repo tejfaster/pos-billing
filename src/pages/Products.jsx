@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useProducts } from "../context/ProductContext";
 import ProductForm from "../features/products/components/ProductForm";
 import ProductList from "../features/products/components/ProductList";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Products() {
   const {
@@ -11,6 +12,8 @@ export default function Products() {
     updateProduct,
     removeProduct,
   } = useProducts();
+
+  const { t } = useLanguage();
 
   const [search, setSearch] = useState("");
   const [selectedProductId, setSelectedProductId] =
@@ -80,7 +83,9 @@ export default function Products() {
     }
 
     const confirmed = window.confirm(
-      `Delete "${selectedProduct.name}"? This product will be removed from the product list.`
+      `${t("deleteProductConfirmationStart")} "${selectedProduct.name}"? ${t(
+        "deleteProductConfirmationEnd"
+      )}`
     );
 
     if (!confirmed) {
@@ -123,8 +128,6 @@ export default function Products() {
           lg:px-8
         "
       >
-        {/* Header */}
-
         <header
           className="
             flex
@@ -138,11 +141,11 @@ export default function Products() {
         >
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
-              Products
+              {t("products")}
             </h1>
 
             <p className="mt-1 text-sm text-[var(--muted)]">
-              Manage products and their selling units.
+              {t("manageProducts")}
             </p>
           </div>
 
@@ -162,7 +165,7 @@ export default function Products() {
               onChange={(event) =>
                 setSearch(event.target.value)
               }
-              placeholder="Search products..."
+              placeholder={t("searchProducts")}
               className="
                 h-10
                 w-full
@@ -199,12 +202,10 @@ export default function Products() {
                 active:scale-[0.98]
               "
             >
-              + Add Product
+              + {t("addProduct")}
             </button>
           </div>
         </header>
-
-        {/* Content */}
 
         <main
           className="
@@ -222,8 +223,6 @@ export default function Products() {
               lg:grid-cols-[360px_minmax(0,1fr)]
             "
           >
-            {/* Product List */}
-
             <div className="min-h-0 overflow-y-auto">
               <ProductList
                 products={filteredProducts}
@@ -234,8 +233,6 @@ export default function Products() {
               />
             </div>
 
-            {/* Product Form */}
-
             <div className="min-h-0 overflow-y-auto">
               {isCreating || selectedProduct ? (
                 <div className="space-y-4">
@@ -244,8 +241,6 @@ export default function Products() {
                     onSave={handleSaveProduct}
                     onCancel={handleCancel}
                   />
-
-                  {/* Delete Product */}
 
                   {selectedProduct && (
                     <div
@@ -264,12 +259,13 @@ export default function Products() {
                     >
                       <div>
                         <div className="text-sm font-medium text-[var(--foreground)]">
-                          Delete Product
+                          {t("deleteProduct")}
                         </div>
 
                         <p className="mt-1 text-xs text-[var(--muted)]">
-                          Remove this product from your
-                          product list.
+                          {t(
+                            "deleteProductDescription"
+                          )}
                         </p>
                       </div>
 
@@ -291,7 +287,7 @@ export default function Products() {
                           active:scale-[0.98]
                         "
                       >
-                        Delete Product
+                        {t("deleteProduct")}
                       </button>
                     </div>
                   )}
@@ -314,13 +310,13 @@ export default function Products() {
                 >
                   <div>
                     <h2 className="text-lg font-semibold">
-                      Select a product
+                      {t("selectProduct")}
                     </h2>
 
                     <p className="mt-2 max-w-sm text-sm text-[var(--muted)]">
-                      Select an existing product to
-                      edit it, or click Add Product to
-                      create a new one.
+                      {t(
+                        "selectProductDescription"
+                      )}
                     </p>
                   </div>
                 </div>

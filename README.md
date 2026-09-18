@@ -2,13 +2,13 @@
 
 A modern, responsive Point of Sale (POS) billing application designed for hardware and building-material businesses.
 
-The application is being developed with a focus on simple billing, flexible product measurements, packaging/size variations, inventory management, customer management, and scalable architecture.
+The project is being developed incrementally with a focus on simple billing, product management, accessibility, localization, responsive design, and a scalable frontend architecture.
 
 ---
 
 ## 🚧 Project Status
 
-The project is currently in the **frontend billing phase**.
+The project is currently in the **frontend development phase**.
 
 ### Currently implemented
 
@@ -25,33 +25,37 @@ The project is currently in the **frontend billing phase**.
 - Start a new bill
 - Scrollable selected-item area
 - Responsive layout
+- Mobile navigation
+- Collapsible desktop sidebar
 - Light mode
 - Dark mode
 - Text-size accessibility controls
+- English language
+- Hindi language
+- Persistent language preference
+- Persistent theme preference
+- Persistent text-size preference
 - A4 print layout
 - Customer / Form area on printed bill
 - Printed quantity
 - Printed rate
 - Printed price
 - Printed total
+- Currency formatting with ₹ in printed amounts
 
-### Currently being designed
+### Product management
 
-The next major architectural improvement is the product and measurement system:
-
-```text
-Product
-   ↓
-Selling Options / Variants
-   ↓
-Units
-   ↓
-Unit Conversion
-   ↓
-Billing
-   ↓
-Inventory
-```
+- Product list
+- Product search
+- Add product
+- Edit product
+- Delete product
+- Product name
+- Product code / SKU
+- Brand
+- Category
+- Product information form
+- Product unit selection interface
 
 ---
 
@@ -62,15 +66,18 @@ Inventory
 The current billing screen allows users to:
 
 - Search for products
-- Search by product name or product code
+- Search by product name, product code, or brand
 - Add products to the bill
 - Increase/decrease quantity
 - Enter decimal quantities
+- Edit quantity directly
 - Enter custom rates
 - Automatically calculate item prices
 - Automatically calculate the bill total
 - Remove products
 - Start a new bill
+- Scroll through selected items independently
+- Print the item list
 
 Example:
 
@@ -86,286 +93,137 @@ River Sand            1        87        87.00
 
 ---
 
-# 📏 Flexible Units & Product Packaging
+# 📦 Product Management
 
-A major requirement of this POS is supporting real-world hardware and building-material measurements.
+The product management screen provides the foundation for maintaining the product master.
 
-A product should not necessarily be treated as a completely separate product for every package size.
+Users can:
 
-For example:
+- View products
+- Search products
+- Add products
+- Edit products
+- Delete products
+- Select categories
+- Enter product codes / SKUs
+- Enter brands
+- Manage product information
+- Manage the existing product-unit selection interface
 
-```text
-OPC 53 Grade Cement
-│
-├── 50 kg Bag
-├── 25 kg Bag
-├── 10 kg Bag
-├── 1 kg Bag
-└── Loose / kg
-```
-
-All of these belong to the same product.
-
----
-
-## Base Unit
-
-Each product will eventually have a base measurement unit.
-
-For example:
-
-```text
-Cement
-Base Unit: kg
-```
-
-Possible selling options:
-
-```text
-50 kg Bag
-25 kg Bag
-10 kg Bag
-1 kg Bag
-kg
-gm
-```
-
-Conversions can then be represented as:
-
-```text
-1 gm       = 0.001 kg
-1 kg       = 1 kg
-1 bag 1kg  = 1 kg
-1 bag 10kg = 10 kg
-1 bag 25kg = 25 kg
-1 bag 50kg = 50 kg
-```
-
----
-
-## Different Products, Different Units
-
-The system should support different units depending on the product.
-
-### Cement
-
-```text
-kg
-gm
-bag
-```
-
-### Steel
-
-```text
-kg
-ton
-bundle
-```
-
-### Electrical Wire
-
-```text
-meter
-feet
-roll
-bundle
-```
-
-### Tiles
-
-```text
-piece
-box
-carton
-```
-
-### PVC Pipe
-
-```text
-meter
-piece
-bundle
-```
-
-### Paint
-
-```text
-liter
-ml
-bucket
-can
-```
-
-### Screws
-
-```text
-piece
-packet
-box
-carton
-```
-
-The final unit system will allow products to define which selling units they support.
-
----
-
-# 📦 Product & Selling Options
-
-The planned product structure separates the actual product from its selling options.
-
-For example:
+The current product structure intentionally keeps core product information simple:
 
 ```text
 Product
-└── OPC 53 Grade Cement
-
-Selling Options
-├── 50 kg Bag
-├── 25 kg Bag
-├── 10 kg Bag
-├── 1 kg Bag
-└── Loose / kg
+├── Name
+├── Code / SKU
+├── Brand
+└── Category
 ```
 
-Each selling option can eventually have:
-
-- Selling unit
-- Package size
-- Conversion to base unit
-- Default rate
-- Selling price
-- Inventory relationship
-
-Example:
-
-```text
-OPC 53 Grade Cement
-
-50 kg Bag
-Unit: bag
-Conversion: 50 kg
-Rate: ₹450
-
-25 kg Bag
-Unit: bag
-Conversion: 25 kg
-Rate: ₹240
-
-10 kg Bag
-Unit: bag
-Conversion: 10 kg
-Rate: ₹100
-
-Loose
-Unit: kg
-Conversion: 1 kg
-Rate: ₹11
-```
+Product names, brands, and SKUs are user-entered business data and are not automatically translated when the application language changes.
 
 ---
 
-# 📊 Inventory Concept
-
-The future inventory system will use the base unit to calculate stock.
-
-For example:
-
-```text
-Inventory:
-Cement = 1000 kg
-```
-
-If a customer purchases:
-
-```text
-2 × 25 kg bags
-```
-
-The inventory calculation becomes:
-
-```text
-1000 kg
-- 50 kg
--------
-950 kg
-```
-
-If another customer purchases:
-
-```text
-3 kg
-```
-
-Then:
-
-```text
-950 kg
-- 3 kg
-------
-947 kg
-```
-
-This allows the system to support both packaged and measured sales.
-
----
-
-# 🖥️ Current UI
-
-The current billing interface contains:
-
-```text
-Create Bill
-
-Search item name or code...
-
-Selected Items
-
-┌─────────────────────────────────────────────┐
-│ #   Item              Qty    Rate    Price  │
-├─────────────────────────────────────────────┤
-│ 1   OPC Cement         2      12      ₹24   │
-│ 2   TMT Bar            3      43     ₹129   │
-│ 3   Grinder            1      21      ₹21   │
-└─────────────────────────────────────────────┘
-
-Total                                  ₹174
-
-              Print Item List
-```
-
-The selected-items area has its own scroll so that adding many products does not cause the entire application page to scroll.
-
----
-
-# 🌙 Theme & Accessibility
+# 🌐 Language Support
 
 The application currently supports:
 
-## Light Mode
-
 ```text
-Light theme
+English
+Hindi
 ```
 
-## Dark Mode
+Users can switch between English and Hindi directly from the application header.
+
+The selected language is stored locally and remains available after refreshing the application.
+
+Language support covers:
+
+- Navigation
+- Billing
+- Product management
+- Search
+- Forms
+- Buttons
+- Empty states
+- Confirmation messages
+- Accessibility controls
+- Print layout
+
+Translation files:
 
 ```text
-Dark theme
+src/i18n/en.js
+src/i18n/hi.js
 ```
 
-## Text Size
-
-Users can select:
+Language state:
 
 ```text
-A−
-A
-A+
-A++
+src/context/LanguageContext.jsx
+```
+
+---
+
+# 🔤 Text Size Accessibility
+
+The application provides four text-size options.
+
+### English
+
+```text
+A−   A   A+   A++
+```
+
+### Hindi
+
+```text
+अ−   अ   अ+   अ++
+```
+
+Available levels:
+
+```text
+Small
+Default
+Large
+Extra Large
 ```
 
 The selected text size is stored locally so the preference remains available after refreshing the application.
+
+---
+
+# 🌙 Theme
+
+The application supports:
+
+- Light mode
+- Dark mode
+
+Theme preference is persisted locally.
+
+The application uses CSS variables for its main theme colors so the interface can switch consistently between themes.
+
+---
+
+# 📱 Responsive Design
+
+The application is designed to work across:
+
+- Mobile phones
+- Tablets
+- Laptops
+- Desktop screens
+
+The layout includes:
+
+- Responsive sidebar
+- Mobile navigation drawer
+- Collapsible desktop sidebar
+- Responsive billing interface
+- Responsive product management interface
+- Scrollable billing item area
 
 ---
 
@@ -377,21 +235,79 @@ The normal application interface is hidden during printing.
 
 The printed layout contains:
 
+- Date
+- Customer / Form field
+- Serial number
+- Item
+- Quantity
+- Rate
+- Price
+- Total
+
+Example:
+
 ```text
-Date: 16/09/2026     Customer / Form: __________________________
+Date: 19/9/2026     Customer / Form: ___________________________
 
-┌──────┬──────────────────────────────┬─────┬──────┬────────┐
-│ S.No │ Item                         │ Qty │ Rate │ Price  │
-├──────┼──────────────────────────────┼─────┼──────┼────────┤
-│  1   │ OPC 53 Grade Cement          │  2  │  12  │  24.00 │
-│  2   │ TMT Bar 12mm Fe500           │  3  │  43  │ 129.00 │
-│  3   │ Angle Grinder 4 inch         │  1  │  21  │  21.00 │
-└──────┴──────────────────────────────┴─────┴──────┴────────┘
+┌──────┬──────────────────────────────┬─────┬────────┬────────┐
+│ S.No │ Item                         │ Qty │  Rate  │ Price  │
+├──────┼──────────────────────────────┼─────┼────────┼────────┤
+│  1   │ PPC Cement                   │  2  │ ₹12.00 │ ₹24.00 │
+│  2   │ White Cement                 │  3  │ ₹123.00│ ₹369.00│
+└──────┴──────────────────────────────┴─────┴────────┴────────┘
 
-                                      Total: ₹174.00
+                                      Total: ₹393.00
 ```
 
 The print layout is designed for A4 paper.
+
+Printed labels follow the currently selected application language.
+
+The application header, navigation controls, sidebar, and other normal UI elements are excluded from the printable output.
+
+---
+
+# 🧮 Calculation Logic
+
+For each billing item:
+
+```text
+Price = Quantity × Rate
+```
+
+Example:
+
+```text
+Quantity = 1.5
+Rate = ₹23
+
+Price = 1.5 × 23
+      = ₹34.50
+```
+
+The bill total is:
+
+```text
+Total = Sum of all item prices
+```
+
+The total remains blank until every selected item has a valid rate.
+
+---
+
+# 📏 Units
+
+The application contains a separate reusable unit master:
+
+```text
+src/data/units.js
+```
+
+Unit definitions are maintained separately from the core product information.
+
+The current application does not store unit conversion calculations in the core product master.
+
+Future inventory and selling workflows may introduce additional business rules around units and quantities after the required business model is finalized.
 
 ---
 
@@ -401,7 +317,6 @@ The application follows a feature-oriented structure.
 
 ```text
 src/
-│
 ├── assets/
 │
 ├── components/
@@ -410,31 +325,43 @@ src/
 │   │
 │   └── layout/
 │       ├── Header.jsx
-│       └── MainLayout.jsx
+│       ├── MainLayout.jsx
+│       └── Sidebar.jsx
 │
 ├── context/
-│   └── ThemeContext.jsx
+│   ├── ThemeContext.jsx
+│   ├── ProductContext.jsx
+│   └── LanguageContext.jsx
 │
 ├── data/
+│   ├── categories.js
+│   ├── units.js
 │   └── products.js
 │
-├── features/
-│   └── billing/
-│       ├── components/
-│       │   ├── BillPrint.jsx
-│       │   ├── ItemList.jsx
-│       │   ├── ItemRow.jsx
-│       │   └── ItemSearch.jsx
-│       │
-│       └── hooks/
-│           └── useBilling.js
+├── i18n/
+│   ├── en.js
+│   └── hi.js
 │
-├── hooks/
+├── features/
+│   ├── billing/
+│   │   ├── components/
+│   │   │   ├── ItemSearch.jsx
+│   │   │   ├── ItemList.jsx
+│   │   │   ├── ItemRow.jsx
+│   │   │   └── BillPrint.jsx
+│   │   │
+│   │   └── hooks/
+│   │       └── useBilling.js
+│   │
+│   └── products/
+│       └── components/
+│           ├── ProductList.jsx
+│           ├── ProductForm.jsx
+│           └── ProductUnitList.jsx
 │
 ├── pages/
-│   └── Billing.jsx
-│
-├── utils/
+│   ├── Billing.jsx
+│   └── Products.jsx
 │
 ├── App.jsx
 ├── index.css
@@ -447,46 +374,56 @@ src/
 
 The project is structured so that features can grow without putting everything into one large component.
 
-### Pages
+## Pages
 
-Pages are responsible for composing complete screens.
+Pages compose complete screens:
 
 ```text
 pages/
-└── Billing.jsx
+├── Billing.jsx
+└── Products.jsx
 ```
 
-### Features
+## Features
 
-Feature-specific functionality lives inside its feature folder.
+Feature-specific functionality lives inside its feature folder:
 
 ```text
 features/
-└── billing/
+├── billing/
+└── products/
 ```
 
-### Components
+## Components
 
-Reusable UI components live under:
+Reusable UI components are separated from page-level logic:
 
 ```text
 components/
+├── common/
+└── layout/
 ```
 
-### Context
+## Context
 
-Global application state such as theme and accessibility preferences lives under:
+Shared application state is handled through React Context:
 
 ```text
 context/
+├── ThemeContext.jsx
+├── ProductContext.jsx
+└── LanguageContext.jsx
 ```
 
-### Data
+## Data
 
-Temporary/static product data currently lives under:
+Static and temporary master data currently lives under:
 
 ```text
 data/
+├── products.js
+├── categories.js
+└── units.js
 ```
 
 This will eventually be replaced or supplemented by backend/database data.
@@ -520,38 +457,8 @@ Print
 The billing state is managed through:
 
 ```text
-features/billing/hooks/useBilling.js
+src/features/billing/hooks/useBilling.js
 ```
-
----
-
-# 🧮 Calculation Logic
-
-For each item:
-
-```text
-Price = Quantity × Rate
-```
-
-Example:
-
-```text
-Quantity = 1.5
-Rate = ₹23
-
-Price = 1.5 × 23
-      = ₹34.50
-```
-
-The total is calculated as:
-
-```text
-Total = Sum of all item prices
-```
-
-The total remains blank until every selected item has a valid rate.
-
-This prevents incomplete bills from displaying a misleading total.
 
 ---
 
@@ -565,81 +472,55 @@ This prevents incomplete bills from displaying a misleading total.
 - [x] Remove items
 - [x] Quantity controls
 - [x] Decimal quantities
+- [x] Editable quantity
 - [x] Editable rate
 - [x] Price calculation
 - [x] Total calculation
 - [x] New Bill
 - [x] Responsive layout
 - [x] Internal item scrolling
+- [x] Print layout
 
----
-
-## Phase 2 — UI & Accessibility
+## Phase 2 — UI, Accessibility & Localization
 
 - [x] Light mode
 - [x] Dark mode
 - [x] Text-size controls
 - [x] Responsive design
-- [x] Compact billing layout
-- [x] Print-friendly layout
+- [x] Mobile navigation
+- [x] Collapsible sidebar
+- [x] English language
+- [x] Hindi language
+- [x] Persistent language preference
+- [x] Persistent theme preference
+- [x] Persistent text-size preference
+- [x] Localized print layout
+- [x] Print-only layout cleanup
 
----
+## Phase 3 — Product Management
 
-## Phase 3 — Product & Measurement System
-
-- [ ] Product model redesign
-- [ ] Product variants / selling options
-- [ ] Unit system
-- [ ] Base units
-- [ ] Unit conversion
-- [ ] Package sizes
-- [ ] Product-specific units
-- [ ] Selling-option-specific rates
-
-Example:
-
-```text
-Product
-   ↓
-Selling Option
-   ↓
-Unit
-   ↓
-Conversion
-   ↓
-Rate
-```
-
----
+- [x] Product list
+- [x] Product search
+- [x] Add product
+- [x] Edit product
+- [x] Delete product
+- [x] Categories
+- [x] Product codes / SKUs
+- [x] Brand field
+- [x] Product information form
+- [x] Product unit selection interface
 
 ## Phase 4 — Billing Improvements
 
-- [ ] Customer / Form field in UI
+- [ ] Customer / Form field in billing UI
 - [ ] Bill number
-- [ ] Sticky item-table header
 - [ ] Faster keyboard workflow
 - [ ] Improved product selection
 - [ ] Better bill validation
 - [ ] Bill draft handling
+- [ ] Saved bills
 
----
-
-## Phase 5 — Product Management
-
-- [ ] Product list
-- [ ] Add product
-- [ ] Edit product
-- [ ] Delete product
-- [ ] Categories
-- [ ] Product codes
-- [ ] Units
-- [ ] Selling options
-- [ ] Default rates
-- [ ] Package sizes
-
----
-
-## Phase 6 — Customer Management
+## Phase 5 — Customer Management
 
 - [ ] Customer list
 - [ ] Add customer
@@ -648,9 +529,7 @@ Rate
 - [ ] Customer history
 - [ ] Customer-wise bills
 
----
-
-## Phase 7 — Bill History
+## Phase 6 — Bill History
 
 - [ ] Save bills
 - [ ] Bill history
@@ -661,22 +540,18 @@ Rate
 - [ ] Filter by customer
 - [ ] Bill details
 
----
-
-## Phase 8 — Inventory
+## Phase 7 — Inventory
 
 - [ ] Stock management
 - [ ] Stock in
 - [ ] Stock out
-- [ ] Base-unit inventory
-- [ ] Package conversion
-- [ ] Loose quantity handling
-- [ ] Low-stock alerts
 - [ ] Stock history
+- [ ] Low-stock alerts
+- [ ] Inventory calculations
+- [ ] Loose quantity handling
+- [ ] Package handling
 
----
-
-## Phase 9 — Payments & Credit
+## Phase 8 — Payments & Credit
 
 - [ ] Cash payments
 - [ ] UPI
@@ -687,9 +562,7 @@ Rate
 - [ ] Outstanding amount
 - [ ] Payment history
 
----
-
-## Phase 10 — Reports
+## Phase 9 — Reports
 
 - [ ] Daily sales
 - [ ] Monthly sales
@@ -700,13 +573,11 @@ Rate
 - [ ] Inventory reports
 - [ ] Stock movement reports
 
----
-
-## Phase 11 — Backend
+## Phase 10 — Backend
 
 The frontend will eventually connect to a backend API.
 
-Planned architecture:
+Planned high-level architecture:
 
 ```text
 React Frontend
@@ -715,22 +586,21 @@ Backend API
       ↓
 Business Logic
       ↓
-PostgreSQL
+Database
 ```
 
-The exact backend framework and API architecture will be decided when the frontend data model is stable.
+The exact backend framework, database architecture, and API structure will be decided after the frontend data model and business rules are stable.
 
 ---
 
 # 🗄️ Planned Data Model
 
-The future system will likely contain entities such as:
+The future system is expected to contain entities such as:
 
 ```text
 Product
 Category
 Unit
-SellingOption
 Customer
 Bill
 BillItem
@@ -740,32 +610,9 @@ Payment
 User
 ```
 
-Relationships will eventually resemble:
+Additional entities may be introduced as business requirements become clearer.
 
-```text
-Product
-  │
-  ├── Category
-  │
-  └── Selling Options
-         │
-         ├── Unit
-         ├── Package Size
-         ├── Conversion
-         └── Rate
-```
-
-And:
-
-```text
-Customer
-   │
-   └── Bills
-          │
-          └── Bill Items
-                 │
-                 └── Products / Selling Options
-```
+The final data model will be designed around the actual workflows required by hardware and building-material businesses.
 
 ---
 
@@ -783,10 +630,19 @@ Customer
 - React hooks
 - React Context
 
+## Current Data
+
+- Local/static JavaScript data
+- Browser local storage for user preferences
+
 ## Planned Backend
 
-- REST API or equivalent API architecture
-- PostgreSQL
+- Backend API
+- Database
+- Persistent business data
+- Authentication
+- User management
+- Roles and permissions
 
 The final backend technology will be selected after the frontend data model and business rules are finalized.
 
@@ -846,6 +702,12 @@ src/App.jsx
 src/pages/Billing.jsx
 ```
 
+### Product management page
+
+```text
+src/pages/Products.jsx
+```
+
 ### Billing state
 
 ```text
@@ -876,16 +738,70 @@ src/features/billing/components/ItemRow.jsx
 src/features/billing/components/BillPrint.jsx
 ```
 
+### Product list
+
+```text
+src/features/products/components/ProductList.jsx
+```
+
+### Product form
+
+```text
+src/features/products/components/ProductForm.jsx
+```
+
+### Product units
+
+```text
+src/features/products/components/ProductUnitList.jsx
+```
+
 ### Product data
 
 ```text
 src/data/products.js
 ```
 
+### Categories
+
+```text
+src/data/categories.js
+```
+
+### Units
+
+```text
+src/data/units.js
+```
+
 ### Theme and text-size settings
 
 ```text
 src/context/ThemeContext.jsx
+```
+
+### Product state
+
+```text
+src/context/ProductContext.jsx
+```
+
+### Language state
+
+```text
+src/context/LanguageContext.jsx
+```
+
+### English translations
+
+```text
+src/i18n/en.js
+```
+
+### Hindi translations
+
+```text
+src/i18n/hi.js
 ```
 
 ### Accessibility controls
@@ -904,55 +820,33 @@ src/index.css
 
 # 🎯 Project Goal
 
-The goal is to build a practical POS system for hardware and building-material businesses where products can be sold in different:
+The goal is to build a practical POS system for hardware and building-material businesses.
 
-- Measurements
-- Units
-- Package sizes
-- Quantities
-- Selling formats
-
-The system should support situations such as:
+The long-term system is intended to cover:
 
 ```text
-1 × 25 kg Bag
-```
-
-or:
-
-```text
-1 kg Loose
-```
-
-or:
-
-```text
-500 gm
-```
-
-while still treating them as the appropriate selling form of the same underlying product.
-
-The long-term goal is a scalable system covering:
-
-```text
-Billing
-   ↓
 Products
    ↓
-Units & Conversions
-   ↓
-Inventory
+Billing
    ↓
 Customers
    ↓
+Bills
+   ↓
 Purchasing
+   ↓
+Inventory
    ↓
 Payments
    ↓
 Reports
    ↓
 Database
+   ↓
+Authentication & Permissions
 ```
+
+The application is being developed incrementally so that each major feature can be built, tested, and stabilized before expanding the system further.
 
 ---
 
@@ -960,18 +854,19 @@ Database
 
 The project is being developed incrementally.
 
-The approach is:
+The current approach is:
 
-1. Stabilize the billing experience.
-2. Define the correct product and unit data model.
-3. Build product management.
+1. Build and stabilize the billing experience.
+2. Build product management.
+3. Add accessibility and localization.
 4. Build customer and bill management.
 5. Add inventory.
-6. Add payments and credit.
-7. Add reports.
-8. Connect the application to a backend and database.
-9. Add authentication and permissions.
-10. Prepare the system for production use.
+6. Add purchasing and suppliers.
+7. Add payments and credit.
+8. Add reports.
+9. Connect the application to a backend and database.
+10. Add authentication and permissions.
+11. Prepare the system for production use.
 
 The architecture should remain modular so new features can be added without rebuilding the existing billing functionality.
 

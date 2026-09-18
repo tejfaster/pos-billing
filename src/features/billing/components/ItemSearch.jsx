@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { PRODUCTS } from "../../../data/products";
+import { useLanguage } from "../../../context/LanguageContext";
 
 export default function ItemSearch({ onAdd }) {
+  const { t } = useLanguage();
+
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -11,17 +14,8 @@ export default function ItemSearch({ onAdd }) {
   const inputRef = useRef(null);
   const listRef = useRef(null);
 
-  // Prevent the dropdown from reopening when
-  // the input receives focus after selecting an item.
   const suppressFocusOpenRef = useRef(false);
 
-  /*
-   * Filter products based on:
-   * - Product name
-   * - Product code
-   * - Brand
-   * - Category
-   */
   const results = useMemo(() => {
     const search = query.trim().toLowerCase();
 
@@ -39,17 +33,10 @@ export default function ItemSearch({ onAdd }) {
     }).slice(0, 40);
   }, [query]);
 
-  /*
-   * Reset active result when
-   * query or dropdown state changes.
-   */
   useEffect(() => {
     setActiveIndex(0);
   }, [query, open]);
 
-  /*
-   * Close dropdown when clicking outside.
-   */
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -60,7 +47,10 @@ export default function ItemSearch({ onAdd }) {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
 
     return () => {
       document.removeEventListener(
@@ -70,17 +60,15 @@ export default function ItemSearch({ onAdd }) {
     };
   }, []);
 
-  /*
-   * Keep active keyboard result visible.
-   */
   useEffect(() => {
     if (!listRef.current) {
       return;
     }
 
-    const activeElement = listRef.current.querySelector(
-      `[data-index="${activeIndex}"]`
-    );
+    const activeElement =
+      listRef.current.querySelector(
+        `[data-index="${activeIndex}"]`
+      );
 
     if (activeElement) {
       activeElement.scrollIntoView({
@@ -89,9 +77,6 @@ export default function ItemSearch({ onAdd }) {
     }
   }, [activeIndex]);
 
-  /*
-   * Highlight matching text.
-   */
   const highlightText = (text) => {
     const search = query.trim();
 
@@ -132,9 +117,6 @@ export default function ItemSearch({ onAdd }) {
     });
   };
 
-  /*
-   * Select a product.
-   */
   const selectItem = (product) => {
     if (!product) {
       return;
@@ -146,12 +128,6 @@ export default function ItemSearch({ onAdd }) {
     setActiveIndex(0);
     setOpen(false);
 
-    /*
-     * Keep cursor in search field so the user
-     * can immediately search for the next item.
-     *
-     * But don't reopen the dropdown automatically.
-     */
     suppressFocusOpenRef.current = true;
 
     requestAnimationFrame(() => {
@@ -159,26 +135,17 @@ export default function ItemSearch({ onAdd }) {
     });
   };
 
-  /*
-   * Keyboard navigation.
-   */
   const handleKeyDown = (event) => {
-    /*
-     * Open dropdown if currently closed.
-     */
     if (
       !open &&
-      (event.key === "ArrowDown" || event.key === "Enter")
+      (event.key === "ArrowDown" ||
+        event.key === "Enter")
     ) {
       event.preventDefault();
       setOpen(true);
       return;
     }
 
-    /*
-     * Nothing to navigate if there
-     * are no search results.
-     */
     if (results.length === 0) {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -188,9 +155,6 @@ export default function ItemSearch({ onAdd }) {
       return;
     }
 
-    /*
-     * Move down.
-     */
     if (event.key === "ArrowDown") {
       event.preventDefault();
 
@@ -204,9 +168,6 @@ export default function ItemSearch({ onAdd }) {
       return;
     }
 
-    /*
-     * Move up.
-     */
     if (event.key === "ArrowUp") {
       event.preventDefault();
 
@@ -217,9 +178,6 @@ export default function ItemSearch({ onAdd }) {
       return;
     }
 
-    /*
-     * Select highlighted product.
-     */
     if (event.key === "Enter") {
       event.preventDefault();
 
@@ -228,9 +186,6 @@ export default function ItemSearch({ onAdd }) {
       return;
     }
 
-    /*
-     * Close dropdown.
-     */
     if (event.key === "Escape") {
       event.preventDefault();
       setOpen(false);
@@ -242,8 +197,6 @@ export default function ItemSearch({ onAdd }) {
       ref={wrapperRef}
       className="relative w-full"
     >
-      {/* Search Input */}
-
       <input
         ref={inputRef}
         type="text"
@@ -253,11 +206,6 @@ export default function ItemSearch({ onAdd }) {
           setOpen(true);
         }}
         onFocus={() => {
-          /*
-           * After selecting a product, the input is
-           * automatically focused but the dropdown
-           * should remain closed.
-           */
           if (suppressFocusOpenRef.current) {
             suppressFocusOpenRef.current = false;
             return;
@@ -266,7 +214,7 @@ export default function ItemSearch({ onAdd }) {
           setOpen(true);
         }}
         onKeyDown={handleKeyDown}
-        placeholder="Search product name, code, brand..."
+        placeholder={t("searchProduct")}
         autoComplete="off"
         role="combobox"
         aria-expanded={open}
@@ -296,8 +244,6 @@ export default function ItemSearch({ onAdd }) {
         "
       />
 
-      {/* Dropdown */}
-
       {open && (
         <div
           id="item-search-list"
@@ -317,8 +263,6 @@ export default function ItemSearch({ onAdd }) {
             shadow-lg
           "
         >
-          {/* Empty State */}
-
           {results.length === 0 ? (
             <div
               className="
@@ -330,11 +274,11 @@ export default function ItemSearch({ onAdd }) {
               "
             >
               <div className="font-medium">
-                No products found
+                {t("noProductsFound")}
               </div>
 
               <div className="mt-1 text-xs">
-                Try a different product name, code, or brand.
+                {t("tryDifferentSearch")}
               </div>
             </div>
           ) : (
@@ -371,8 +315,6 @@ export default function ItemSearch({ onAdd }) {
                   }
                 `}
               >
-                {/* Product Name */}
-
                 <div
                   className="
                     truncate
@@ -383,8 +325,6 @@ export default function ItemSearch({ onAdd }) {
                 >
                   {highlightText(product.name)}
                 </div>
-
-                {/* Product Details */}
 
                 <div
                   className="

@@ -1,3 +1,5 @@
+import { useLanguage } from "../../../context/LanguageContext";
+
 export default function ItemRow({
   item,
   index,
@@ -6,6 +8,8 @@ export default function ItemRow({
   onChangeRate,
   onRemove,
 }) {
+  const { t } = useLanguage();
+
   const hasRate =
     item.rate !== "" &&
     !Number.isNaN(Number(item.rate));
@@ -36,12 +40,10 @@ export default function ItemRow({
         last:border-b-0
       "
     >
-      {/* S.No */}
       <div className="text-sm text-[var(--muted)]">
         {index + 1}
       </div>
 
-      {/* Item */}
       <div className="min-w-0">
         <div className="truncate text-sm font-medium text-[var(--foreground)]">
           {item.name}
@@ -52,12 +54,12 @@ export default function ItemRow({
         </div>
       </div>
 
-      {/* Quantity */}
       <div className="flex items-center gap-1">
-        {/* Decrease */}
         <button
           type="button"
-          onClick={() => onChangeQuantity(item.id, -1)}
+          onClick={() =>
+            onChangeQuantity(item.id, -1)
+          }
           className="
             flex
             h-8
@@ -75,12 +77,11 @@ export default function ItemRow({
             hover:bg-[var(--muted)]/10
             active:scale-95
           "
-          aria-label={`Decrease quantity of ${item.name}`}
+          aria-label={`${t("decreaseQuantity")} ${item.name}`}
         >
           −
         </button>
 
-        {/* Editable Quantity */}
         <input
           type="text"
           inputMode="decimal"
@@ -88,18 +89,11 @@ export default function ItemRow({
           onChange={(event) => {
             const value = event.target.value;
 
-            /*
-             * Allow:
-             * 1
-             * 0.5
-             * 1.25
-             * 10.5
-             */
             if (/^\d*\.?\d*$/.test(value)) {
               onSetQuantity(item.id, value);
             }
           }}
-          aria-label={`Quantity for ${item.name}`}
+          aria-label={`${t("quantityFor")} ${item.name}`}
           className="
             h-8
             w-12
@@ -121,10 +115,11 @@ export default function ItemRow({
           "
         />
 
-        {/* Increase */}
         <button
           type="button"
-          onClick={() => onChangeQuantity(item.id, 1)}
+          onClick={() =>
+            onChangeQuantity(item.id, 1)
+          }
           className="
             flex
             h-8
@@ -142,13 +137,12 @@ export default function ItemRow({
             hover:bg-[var(--muted)]/10
             active:scale-95
           "
-          aria-label={`Increase quantity of ${item.name}`}
+          aria-label={`${t("increaseQuantity")} ${item.name}`}
         >
           +
         </button>
       </div>
 
-      {/* Rate */}
       <input
         type="text"
         inputMode="decimal"
@@ -160,8 +154,8 @@ export default function ItemRow({
             onChangeRate(item.id, value);
           }
         }}
-        placeholder="Rate"
-        aria-label={`Rate for ${item.name}`}
+        placeholder={t("rate")}
+        aria-label={`${t("rateFor")} ${item.name}`}
         className="
           h-9
           w-full
@@ -182,17 +176,15 @@ export default function ItemRow({
         "
       />
 
-      {/* Price */}
       <div className="truncate text-sm font-medium text-[var(--foreground)]">
         {formattedPrice}
       </div>
 
-      {/* Remove */}
       <button
         type="button"
         onClick={() => onRemove(item.id)}
-        aria-label={`Remove ${item.name}`}
-        title={`Remove ${item.name}`}
+        aria-label={`${t("remove")} ${item.name}`}
+        title={`${t("remove")} ${item.name}`}
         className="
           flex
           h-8
