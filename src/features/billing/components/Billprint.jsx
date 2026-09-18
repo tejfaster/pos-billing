@@ -1,4 +1,8 @@
+import { useLanguage } from "../../../context/LanguageContext";
+
 export default function BillPrint({ items }) {
+  const { t } = useLanguage();
+
   if (!items || items.length === 0) {
     return null;
   }
@@ -25,41 +29,38 @@ export default function BillPrint({ items }) {
   return (
     <div className="print-only print-page">
       <div className="print-container">
-
-        {/* Date + Customer */}
         <div className="print-header">
           <div className="print-date">
-            Date: {today}
+            {t("date")}: {today}
           </div>
 
           <div className="print-customer">
-            <span>Customer / Form:</span>
+            <span>{t("customerForm")}:</span>
             <span className="customer-line"></span>
           </div>
         </div>
 
-        {/* Bill Table */}
         <table className="print-table">
           <thead>
             <tr>
               <th className="serial-column">
-                S.No
+                {t("serialNumber")}
               </th>
 
               <th className="item-column">
-                Item
+                {t("item")}
               </th>
 
               <th className="quantity-column">
-                Qty
+                {t("qty")}
               </th>
 
               <th className="rate-column">
-                Rate
+                {t("rate")}
               </th>
 
               <th className="price-column">
-                Price
+                {t("price")}
               </th>
             </tr>
           </thead>
@@ -79,42 +80,35 @@ export default function BillPrint({ items }) {
                 : null;
 
               const price =
-                rate !== null
-                  ? qty * rate
-                  : null;
+                rate !== null ? qty * rate : null;
 
               return (
                 <tr key={item.id}>
-                  {/* S.No */}
                   <td className="text-center">
                     {index + 1}
                   </td>
 
-                  {/* Item */}
-                  <td>
-                    {item.name}
-                  </td>
+                  <td>{item.name}</td>
 
-                  {/* Quantity */}
                   <td className="text-center">
                     {item.qty}
                   </td>
 
-                  {/* Rate */}
                   <td className="text-center">
                     {rate !== null
-                      ? rate.toLocaleString("en-IN", {
+                      ? `₹${rate.toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
-                        })
+                        })}`
                       : ""}
                   </td>
 
-                  {/* Price */}
                   <td className="text-center">
                     {price !== null
-                      ? price.toLocaleString("en-IN", {
+                      ? `₹${price.toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
-                        })
+                        })}`
                       : ""}
                   </td>
                 </tr>
@@ -123,19 +117,18 @@ export default function BillPrint({ items }) {
           </tbody>
         </table>
 
-        {/* Total */}
         <div className="print-total">
-          <span>Total:</span>
+          <span>{t("total")}:</span>
 
           <span className="print-total-value">
             {printTotal !== null
-              ? printTotal.toLocaleString("en-IN", {
+              ? `₹${printTotal.toLocaleString("en-IN", {
+                  minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
-                })
+                })}`
               : ""}
           </span>
         </div>
-
       </div>
     </div>
   );

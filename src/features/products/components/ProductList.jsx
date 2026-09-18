@@ -1,8 +1,12 @@
+import { useLanguage } from "../../../context/LanguageContext";
+
 export default function ProductList({
   products,
   selectedProductId,
   onSelect,
 }) {
+  const { t } = useLanguage();
+
   if (products.length === 0) {
     return (
       <div
@@ -18,11 +22,11 @@ export default function ProductList({
         "
       >
         <p className="text-sm font-medium text-[var(--foreground)]">
-          No products found
+          {t("noProductsFound")}
         </p>
 
         <p className="mt-1 text-xs text-[var(--muted)]">
-          Try a different search or add a new product.
+          {t("tryDifferentSearch")}
         </p>
       </div>
     );
@@ -50,7 +54,7 @@ export default function ProductList({
           text-[var(--muted)]
         "
       >
-        Products
+        {t("products")}
       </div>
 
       <div className="max-h-[calc(100vh-260px)] overflow-y-auto">

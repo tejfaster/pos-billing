@@ -1,35 +1,37 @@
+import { useLanguage } from "../../context/LanguageContext";
+
 const NAV_ITEMS = [
   {
     id: "billing",
-    label: "Billing",
+    labelKey: "billing",
     icon: "▣",
   },
   {
     id: "products",
-    label: "Products",
+    labelKey: "products",
     icon: "▦",
   },
   {
     id: "customers",
-    label: "Customers",
+    labelKey: "customers",
     icon: "♙",
     disabled: true,
   },
   {
     id: "bills",
-    label: "Bills",
+    labelKey: "bills",
     icon: "☷",
     disabled: true,
   },
   {
     id: "inventory",
-    label: "Inventory",
+    labelKey: "inventory",
     icon: "▤",
     disabled: true,
   },
   {
     id: "reports",
-    label: "Reports",
+    labelKey: "reports",
     icon: "◫",
     disabled: true,
   },
@@ -42,6 +44,8 @@ export default function Sidebar({
   mobileOpen = false,
   onClose,
 }) {
+  const { t } = useLanguage();
+
   const handleNavigate = (item) => {
     if (item.disabled) {
       return;
@@ -56,12 +60,10 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Mobile backdrop */}
-
       {mobileOpen && (
         <button
           type="button"
-          aria-label="Close navigation"
+          aria-label={t("closeNavigation")}
           onClick={onClose}
           className="
             fixed
@@ -75,6 +77,7 @@ export default function Sidebar({
 
       <aside
         className={`
+          no-print
           fixed
           inset-y-0
           left-0
@@ -100,8 +103,6 @@ export default function Sidebar({
           }
         `}
       >
-        {/* Logo / Brand */}
-
         <div
           className="
             flex
@@ -143,13 +144,11 @@ export default function Sidebar({
             </div>
           )}
 
-          {/* Mobile close */}
-
           {mobileOpen && (
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close navigation"
+              aria-label={t("closeNavigation")}
               className="
                 ml-auto
                 flex
@@ -168,8 +167,6 @@ export default function Sidebar({
             </button>
           )}
         </div>
-
-        {/* Navigation */}
 
         <nav
           className="
@@ -195,7 +192,7 @@ export default function Sidebar({
                   }
                   title={
                     collapsed
-                      ? item.label
+                      ? t(item.labelKey)
                       : undefined
                   }
                   className={`
@@ -237,14 +234,14 @@ export default function Sidebar({
 
                   {!collapsed && (
                     <span className="truncate text-sm font-medium">
-                      {item.label}
+                      {t(item.labelKey)}
                     </span>
                   )}
 
                   {!collapsed &&
                     item.disabled && (
                       <span className="ml-auto text-[10px] text-[var(--muted)]">
-                        Soon
+                        {t("soon")}
                       </span>
                     )}
                 </button>
@@ -252,8 +249,6 @@ export default function Sidebar({
             })}
           </div>
         </nav>
-
-        {/* Bottom */}
 
         <div
           className="
@@ -268,7 +263,7 @@ export default function Sidebar({
             disabled
             title={
               collapsed
-                ? "Settings"
+                ? t("settings")
                 : undefined
             }
             className={`
@@ -293,7 +288,7 @@ export default function Sidebar({
 
             {!collapsed && (
               <span className="text-sm font-medium">
-                Settings
+                {t("settings")}
               </span>
             )}
           </button>

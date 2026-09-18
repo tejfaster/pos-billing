@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { CATEGORIES } from "../../../data/categories";
 import ProductUnitList from "./ProductUnitList";
+import { useLanguage } from "../../../context/LanguageContext";
 
 const EMPTY_FORM = {
   name: "",
@@ -16,6 +17,8 @@ export default function ProductForm({
   onSave,
   onCancel,
 }) {
+  const { t } = useLanguage();
+
   const [form, setForm] = useState(EMPTY_FORM);
 
   useEffect(() => {
@@ -110,11 +113,13 @@ export default function ProductForm({
       >
         <div>
           <h2 className="text-lg font-semibold text-[var(--foreground)]">
-            {isEditing ? "Edit Product" : "Add New Product"}
+            {isEditing
+              ? t("editProduct")
+              : t("addNewProduct")}
           </h2>
 
           <p className="mt-1 text-sm text-[var(--muted)]">
-            Add product information and selling units.
+            {t("addProductInformation")}
           </p>
         </div>
 
@@ -137,7 +142,7 @@ export default function ProductForm({
                 hover:bg-[var(--muted)]/10
               "
             >
-              Cancel
+              {t("cancel")}
             </button>
           )}
 
@@ -156,17 +161,17 @@ export default function ProductForm({
               active:scale-[0.98]
             "
           >
-            {isEditing ? "Update Product" : "Save Product"}
+            {isEditing
+              ? t("updateProduct")
+              : t("saveProduct")}
           </button>
         </div>
       </div>
 
       <div className="space-y-6 p-5">
-        {/* Basic Information */}
-
         <section>
           <h3 className="text-base font-semibold text-[var(--foreground)]">
-            Basic Information
+            {t("basicInformation")}
           </h3>
 
           <div
@@ -177,14 +182,13 @@ export default function ProductForm({
               sm:grid-cols-2
             "
           >
-            {/* Product Name */}
-
             <div className="sm:col-span-2">
               <label
                 htmlFor="product-name"
                 className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
               >
-                Product Name
+                {t("productName")}
+
                 <span className="ml-1 text-[var(--danger)]">
                   *
                 </span>
@@ -200,7 +204,7 @@ export default function ProductForm({
                     event.target.value
                   )
                 }
-                placeholder="e.g. Exterior Emulsion Paint"
+                placeholder={t("productNamePlaceholder")}
                 required
                 className="
                   h-11
@@ -222,14 +226,12 @@ export default function ProductForm({
               />
             </div>
 
-            {/* Brand */}
-
             <div>
               <label
                 htmlFor="product-brand"
                 className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
               >
-                Brand
+                {t("brand")}
               </label>
 
               <input
@@ -242,7 +244,7 @@ export default function ProductForm({
                     event.target.value
                   )
                 }
-                placeholder="e.g. Asian Paints"
+                placeholder={t("brandPlaceholder")}
                 className="
                   h-11
                   w-full
@@ -263,14 +265,12 @@ export default function ProductForm({
               />
             </div>
 
-            {/* Product Code */}
-
             <div>
               <label
                 htmlFor="product-code"
                 className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
               >
-                Product Code / SKU
+                {t("productCode")}
               </label>
 
               <input
@@ -283,7 +283,7 @@ export default function ProductForm({
                     event.target.value
                   )
                 }
-                placeholder="e.g. PNT-EXT-001"
+                placeholder={t("productCodePlaceholder")}
                 className="
                   h-11
                   w-full
@@ -304,14 +304,13 @@ export default function ProductForm({
               />
             </div>
 
-            {/* Category */}
-
             <div className="sm:col-span-2">
               <label
                 htmlFor="product-category"
                 className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
               >
-                Category
+                {t("category")}
+
                 <span className="ml-1 text-[var(--danger)]">
                   *
                 </span>
@@ -345,7 +344,7 @@ export default function ProductForm({
                 "
               >
                 <option value="">
-                  Select category
+                  {t("selectCategory")}
                 </option>
 
                 {CATEGORIES.map((category) => (
@@ -360,8 +359,6 @@ export default function ProductForm({
             </div>
           </div>
         </section>
-
-        {/* Units */}
 
         <section
           className="
