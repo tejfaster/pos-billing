@@ -92,4 +92,34 @@ export const hi = {
   appearanceDescription:"एप्लिकेशन की थीम और टेक्स्ट का आकार बदलें।",
   themeAndTextSize: "थीम और टेक्स्ट आकार",
   themeAndTextSizeDescription:"अपनी पसंद की थीम चुनें और टेक्स्ट का आकार बदलें।",
+
+  signup: "साइन अप",
+  createAccount: "अकाउंट बनाएं",
+  alreadyHaveAccount: "क्या आपके पास पहले से अकाउंट है?",
+  login: "लॉगिन",
+
+  firstName: "पहला नाम",
+  lastName: "उपनाम",
+  phoneNumber: "फोन नंबर",
+  email: "ईमेल",
+  password: "पासवर्ड",
+  confirmPassword: "पासवर्ड की पुष्टि करें",
+
+  firstNamePlaceholder: "अपना पहला नाम दर्ज करें",
+  lastNamePlaceholder: "अपना उपनाम दर्ज करें",
+  phoneNumberPlaceholder: "अपना फोन नंबर दर्ज करें",
+  emailPlaceholder: "अपना ईमेल दर्ज करें",
+  passwordPlaceholder: "अपना पासवर्ड दर्ज करें",
+  confirmPasswordPlaceholder: "अपना पासवर्ड फिर से दर्ज करें",
+
+  passwordRequirements: "पासवर्ड की आवश्यकताएं",
+  passwordMinLength: "कम से कम 8 अक्षर",
+  passwordUppercase: "एक बड़ा अक्षर",
+  passwordLowercase: "एक छोटा अक्षर",
+  passwordNumber: "एक नंबर",
+  passwordSpecial: "एक विशेष अक्षर",
+
+  showPassword: "पासवर्ड दिखाएं",
+  hidePassword: "पासवर्ड छिपाएं",
+  dontHaveAccount: "क्या आपके पास अकाउंट नहीं है?",
 };

@@ -46,10 +46,8 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-
   background: var(--background);
   color: var(--foreground);
-
   font-family:
     Inter,
     ui-sans-serif,
@@ -58,7 +56,6 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -80,9 +77,19 @@ select {
   color: var(--foreground);
 }
 
-::selection {
+*::selection {
   background: var(--foreground);
   color: var(--background);
+}
+
+/* ================================
+   PASSWORD INPUT
+================================ */
+
+/* Prevent Chromium / Edge native password reveal controls */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
 }
 
 /* ================================
@@ -109,19 +116,16 @@ select {
     min-width: 0;
     margin: 0;
     padding: 0;
-
     background: #ffffff !important;
     color: #000000 !important;
   }
 
   /* Hide application UI */
-
   .no-print {
     display: none !important;
   }
 
   /* Show printable bill */
-
   .print-only {
     display: block !important;
   }
@@ -144,47 +148,35 @@ select {
   .print-header {
     display: flex;
     align-items: center;
-
     width: 100%;
-
     margin-bottom: 6px;
     gap: 35px;
-
     font-size: 11px;
     font-weight: 500;
-
     color: #000000 !important;
     background: #ffffff !important;
   }
 
   .print-date {
     flex-shrink: 0;
-
     white-space: nowrap;
-
     color: #000000 !important;
   }
 
   .print-customer {
     display: flex;
     align-items: center;
-
     flex: 1;
     min-width: 0;
-
     white-space: nowrap;
-
     color: #000000 !important;
   }
 
   .customer-line {
     flex: 1;
-
     min-width: 120px;
     height: 16px;
-
     margin-left: 4px;
-
     border-bottom: 1px solid #000000;
   }
 
@@ -194,12 +186,9 @@ select {
 
   .print-table {
     width: calc(100% - 1px);
-
     border-collapse: collapse;
     table-layout: fixed;
-
     font-size: 11px;
-
     color: #000000 !important;
     background: #ffffff !important;
   }
@@ -207,9 +196,7 @@ select {
   .print-table th,
   .print-table td {
     border: 1px solid #000000 !important;
-
     padding: 4px 6px;
-
     color: #000000 !important;
     background: #ffffff !important;
   }
@@ -274,29 +261,21 @@ select {
     display: flex !important;
     align-items: center;
     justify-content: flex-end;
-
     width: 100%;
-
     gap: 10px;
-
     margin-top: 8px;
     padding-right: 1px;
-
     font-size: 12px;
     font-weight: 700;
-
     color: #000000 !important;
     background: #ffffff !important;
   }
 
   .print-total-value {
     display: inline-block !important;
-
     min-width: 120px;
     margin-left: 0;
-
     text-align: right;
-
     color: #000000 !important;
     background: #ffffff !important;
   }
