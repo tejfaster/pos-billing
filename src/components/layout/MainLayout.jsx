@@ -17,13 +17,19 @@ export default function MainLayout({
   const { language, setLanguage, t } =
     useLanguage();
 
+  const pageTitle =
+    currentPage === "billing"
+      ? t("billing")
+      : currentPage === "products"
+        ? t("products")
+        : currentPage === "settings"
+          ? t("settings")
+          : "";
+
   return (
     <div
       className="
-        flex
-        h-dvh
-        w-full
-        overflow-hidden
+        flex h-dvh w-full overflow-hidden
         bg-[var(--background)]
         text-[var(--foreground)]
       "
@@ -37,51 +43,48 @@ export default function MainLayout({
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
+        {/* Header */}
         <header
           className="
-            no-print
-            flex
-            h-16
-            shrink-0
-            items-center
-            justify-between
-            border-b
-            border-[var(--border)]
+            no-print flex h-16 shrink-0
+            items-center justify-between
+            border-b border-[var(--border)]
             bg-[var(--surface)]
-            px-4
-            sm:px-6
+            px-4 sm:px-6
           "
         >
-          <div className="flex items-center gap-3">
+          {/* Left side */}
+          <div className="flex min-w-0 items-center gap-3">
+            {/* Mobile menu */}
             <button
               type="button"
-              onClick={() => setMobileMenuOpen(true)}
+              onClick={() =>
+                setMobileMenuOpen(true)
+              }
               aria-label={t("openNavigation")}
               title={t("openNavigation")}
               className="
-                flex
-                h-9
-                w-9
-                items-center
-                justify-center
+                flex h-10 w-10 shrink-0
+                items-center justify-center
                 rounded-lg
-                border
-                border-[var(--border)]
-                text-lg
+                border border-[var(--border)]
+                bg-[var(--surface)]
                 text-[var(--foreground)]
                 transition
                 hover:bg-[var(--muted)]/10
+                active:scale-95
                 lg:hidden
               "
             >
               ☰
             </button>
 
+            {/* Desktop sidebar toggle */}
             <button
               type="button"
               onClick={() =>
                 setSidebarCollapsed(
-                  (current) => !current
+                  (collapsed) => !collapsed
                 )
               }
               aria-label={
@@ -95,98 +98,97 @@ export default function MainLayout({
                   : t("collapseSidebar")
               }
               className="
-                hidden
-                h-9
-                w-9
-                items-center
-                justify-center
+                hidden h-10 w-10 shrink-0
+                items-center justify-center
                 rounded-lg
-                border
-                border-[var(--border)]
-                text-base
+                border border-[var(--border)]
+                bg-[var(--surface)]
                 text-[var(--foreground)]
                 transition
                 hover:bg-[var(--muted)]/10
+                active:scale-95
                 lg:flex
               "
             >
               {sidebarCollapsed ? "→" : "←"}
             </button>
 
-            <div className="hidden sm:block">
-              <div className="text-sm font-semibold">
-                {currentPage === "billing"
-                  ? t("billing")
-                  : currentPage === "products"
-                  ? t("products")
-                  : currentPage}
-              </div>
+            {/* Page title */}
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-semibold">
+                {pageTitle}
+              </h1>
             </div>
           </div>
 
-          <div
-            className="
-              flex
-              items-center
-              rounded-lg
-              border
-              border-[var(--border)]
-              bg-[var(--surface)]
-              p-1
-            "
-            aria-label="Language"
-          >
-            <button
-              type="button"
-              onClick={() => setLanguage("en")}
-              aria-pressed={language === "en"}
-              className={`
-                rounded-md
-                px-3
-                py-1.5
-                text-xs
-                font-medium
-                transition
-                ${
-                  language === "en"
-                    ? "bg-[var(--foreground)] text-[var(--background)]"
-                    : "text-[var(--muted)] hover:bg-[var(--muted)]/10"
-                }
-              `}
+          {/* Right side */}
+          <div className="flex shrink-0 items-center gap-2">
+            {/* Language */}
+            <div
+              className="
+                flex items-center
+                rounded-lg
+                border border-[var(--border)]
+                bg-[var(--surface)]
+                p-1
+              "
+              aria-label={t("language")}
             >
-              EN
-            </button>
+              <button
+                type="button"
+                onClick={() => setLanguage("en")}
+                aria-pressed={language === "en"}
+                className={`
+                  rounded-md
+                  px-2.5 py-1.5
+                  text-xs font-medium
+                  transition
+                  ${
+                    language === "en"
+                      ? `
+                        bg-[var(--foreground)]
+                        text-[var(--background)]
+                      `
+                      : `
+                        text-[var(--muted)]
+                        hover:bg-[var(--muted)]/10
+                      `
+                  }
+                `}
+              >
+                EN
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setLanguage("hi")}
-              aria-pressed={language === "hi"}
-              className={`
-                rounded-md
-                px-3
-                py-1.5
-                text-xs
-                font-medium
-                transition
-                ${
-                  language === "hi"
-                    ? "bg-[var(--foreground)] text-[var(--background)]"
-                    : "text-[var(--muted)] hover:bg-[var(--muted)]/10"
-                }
-              `}
-            >
-              हिंदी
-            </button>
+              <button
+                type="button"
+                onClick={() => setLanguage("hi")}
+                aria-pressed={language === "hi"}
+                className={`
+                  rounded-md
+                  px-2.5 py-1.5
+                  text-xs font-medium
+                  transition
+                  ${
+                    language === "hi"
+                      ? `
+                        bg-[var(--foreground)]
+                        text-[var(--background)]
+                      `
+                      : `
+                        text-[var(--muted)]
+                        hover:bg-[var(--muted)]/10
+                      `
+                  }
+                `}
+              >
+                हिंदी
+              </button>
+            </div>
           </div>
         </header>
 
-        <main
-          className="
-            min-h-0
-            flex-1
-            overflow-hidden
-          "
-        >
+        {/* Page content */}
+        <main className="min-h-0 flex-1 overflow-hidden">
           {children}
         </main>
       </div>

@@ -87,4 +87,9 @@ export const hi = {
   date: "दिनांक",
   customerForm: "ग्राहक / फॉर्म",
   serialNumber: "क्रमांक",
+  settingsDescription:"एप्लिकेशन की दिखावट और एक्सेसिबिलिटी को अपनी पसंद के अनुसार बदलें।",
+  appearance: "दिखावट",
+  appearanceDescription:"एप्लिकेशन की थीम और टेक्स्ट का आकार बदलें।",
+  themeAndTextSize: "थीम और टेक्स्ट आकार",
+  themeAndTextSizeDescription:"अपनी पसंद की थीम चुनें और टेक्स्ट का आकार बदलें।",
 };
