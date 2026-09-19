@@ -4,290 +4,305 @@ const NAV_ITEMS = [
   {
     id: "billing",
     labelKey: "billing",
-    icon: "▣",
+    enabled: true,
   },
   {
     id: "products",
     labelKey: "products",
-    icon: "▦",
+    enabled: true,
   },
   {
     id: "customers",
     labelKey: "customers",
-    icon: "♙",
-    disabled: true,
+    enabled: false,
   },
   {
     id: "bills",
     labelKey: "bills",
-    icon: "☷",
-    disabled: true,
+    enabled: false,
   },
   {
     id: "inventory",
     labelKey: "inventory",
-    icon: "▤",
-    disabled: true,
+    enabled: false,
   },
   {
     id: "reports",
     labelKey: "reports",
-    icon: "◫",
-    disabled: true,
+    enabled: false,
   },
 ];
 
 export default function Sidebar({
   currentPage,
   onNavigate,
-  collapsed = false,
-  mobileOpen = false,
+  collapsed,
+  mobileOpen,
   onClose,
 }) {
   const { t } = useLanguage();
 
-  const handleNavigate = (item) => {
-    if (item.disabled) {
-      return;
-    }
+  const visibleNavItems = NAV_ITEMS.filter(
+    (item) => item.enabled
+  );
 
-    onNavigate(item.id);
-
-    if (onClose) {
-      onClose();
-    }
+  const handleNavigation = (page) => {
+    onNavigate(page);
+    onClose();
   };
 
   return (
     <>
+      {/* Mobile overlay */}
       {mobileOpen && (
         <button
           type="button"
           aria-label={t("closeNavigation")}
           onClick={onClose}
           className="
-            fixed
-            inset-0
-            z-40
-            bg-black/40
-            lg:hidden
+            no-print fixed inset-0 z-40
+            bg-black/40 lg:hidden
           "
         />
       )}
 
+      {/* Sidebar */}
       <aside
         className={`
-          no-print
-          fixed
-          inset-y-0
-          left-0
-          z-50
-          flex
-          flex-col
-          border-r
-          border-[var(--border)]
+          no-print fixed inset-y-0 left-0 z-50
+          flex flex-col
+          border-r border-[var(--border)]
           bg-[var(--surface)]
-          transition-all
-          duration-200
-          lg:static
-          lg:z-auto
-          ${
-            collapsed
-              ? "w-20"
-              : "w-64"
-          }
+          transition-all duration-200
+
+          lg:static lg:z-auto lg:translate-x-0
+
           ${
             mobileOpen
               ? "translate-x-0"
-              : "-translate-x-full lg:translate-x-0"
+              : "-translate-x-full"
           }
+
+          ${collapsed ? "w-20" : "w-64"}
         `}
       >
+        {/* Logo / Brand */}
         <div
           className="
-            flex
-            h-16
-            shrink-0
-            items-center
-            border-b
-            border-[var(--border)]
+            flex h-16 shrink-0 items-center
+            border-b border-[var(--border)]
             px-4
           "
         >
           <div
-            className="
-              flex
-              h-9
-              w-9
-              shrink-0
-              items-center
-              justify-center
-              rounded-lg
-              bg-[var(--foreground)]
-              text-sm
-              font-bold
-              text-[var(--background)]
-            "
+            className={`
+              flex min-w-0 items-center
+              ${
+                collapsed
+                  ? "w-full justify-center"
+                  : "gap-3"
+              }
+            `}
           >
-            P
-          </div>
-
-          {!collapsed && (
-            <div className="ml-3 min-w-0">
-              <div className="truncate text-sm font-semibold">
-                POS Billing
-              </div>
-
-              <div className="truncate text-xs text-[var(--muted)]">
-                Hardware & Materials
-              </div>
-            </div>
-          )}
-
-          {mobileOpen && (
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label={t("closeNavigation")}
+            {/* Logo */}
+            <div
               className="
-                ml-auto
-                flex
-                h-9
-                w-9
-                items-center
-                justify-center
+                flex h-9 w-9 shrink-0
+                items-center justify-center
                 rounded-lg
-                text-lg
-                text-[var(--muted)]
-                hover:bg-[var(--muted)]/10
-                lg:hidden
+                bg-[var(--foreground)]
+                text-sm font-bold
+                text-[var(--background)]
               "
             >
-              ×
-            </button>
-          )}
+              P
+            </div>
+
+            {/* Brand name */}
+            {!collapsed && (
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">
+                  POS Billing
+                </p>
+
+                <p className="truncate text-xs text-[var(--muted)]">
+                  Billing System
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
+        {/* Main navigation */}
         <nav
-          className="
-            flex-1
-            overflow-y-auto
-            px-3
-            py-5
-          "
-          aria-label="Main navigation"
+          className="flex-1 overflow-y-auto p-3"
+          aria-label={t("mainNavigation")}
         >
           <div className="space-y-1">
-            {NAV_ITEMS.map((item) => {
-              const active =
+            {visibleNavItems.map((item) => {
+              const isActive =
                 currentPage === item.id;
 
               return (
                 <button
                   key={item.id}
                   type="button"
-                  disabled={item.disabled}
                   onClick={() =>
-                    handleNavigate(item)
-                  }
-                  title={
-                    collapsed
-                      ? t(item.labelKey)
-                      : undefined
+                    handleNavigation(item.id)
                   }
                   className={`
-                    flex
-                    w-full
-                    items-center
-                    rounded-lg
-                    px-3
-                    py-2.5
-                    text-left
+                    group relative flex w-full
+                    items-center rounded-lg
+                    px-3 py-2.5
+                    text-sm font-medium
                     transition
+
                     ${
                       collapsed
                         ? "justify-center"
                         : "gap-3"
                     }
+
                     ${
-                      active
-                        ? "bg-[var(--foreground)] text-[var(--background)]"
-                        : item.disabled
-                        ? "cursor-not-allowed text-[var(--muted)] opacity-45"
-                        : "text-[var(--foreground)] hover:bg-[var(--muted)]/10"
+                      isActive
+                        ? `
+                          bg-[var(--accent-soft)]
+                          text-[var(--foreground)]
+                        `
+                        : `
+                          text-[var(--muted)]
+                          hover:bg-[var(--muted)]/10
+                          hover:text-[var(--foreground)]
+                        `
                     }
                   `}
                 >
+                  {/* Navigation icon */}
                   <span
                     className="
-                      flex
-                      h-5
-                      w-5
-                      shrink-0
-                      items-center
-                      justify-center
-                      text-base
+                      flex h-5 w-5 shrink-0
+                      items-center justify-center
+                      text-sm
                     "
+                    aria-hidden="true"
                   >
-                    {item.icon}
+                    {item.id === "billing" && "▣"}
+                    {item.id === "products" && "▤"}
+                    {item.id === "customers" && "♙"}
+                    {item.id === "bills" && "▤"}
+                    {item.id === "inventory" && "▥"}
+                    {item.id === "reports" && "▥"}
                   </span>
 
+                  {/* Label */}
                   {!collapsed && (
-                    <span className="truncate text-sm font-medium">
+                    <span className="min-w-0 truncate text-left">
                       {t(item.labelKey)}
                     </span>
                   )}
 
-                  {!collapsed &&
-                    item.disabled && (
-                      <span className="ml-auto text-[10px] text-[var(--muted)]">
-                        {t("soon")}
-                      </span>
-                    )}
+                  {/* Collapsed tooltip */}
+                  {collapsed && (
+                    <span
+                      className="
+                        pointer-events-none
+                        absolute left-full z-50 ml-3
+                        hidden whitespace-nowrap
+                        rounded-md
+                        border border-[var(--border)]
+                        bg-[var(--surface)]
+                        px-3 py-1.5
+                        text-xs
+                        text-[var(--foreground)]
+                        shadow-lg
+                        group-hover:block
+                      "
+                    >
+                      {t(item.labelKey)}
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
         </nav>
 
+        {/* Settings */}
         <div
           className="
             shrink-0
-            border-t
-            border-[var(--border)]
+            border-t border-[var(--border)]
             p-3
           "
         >
           <button
             type="button"
-            disabled
-            title={
-              collapsed
-                ? t("settings")
-                : undefined
+            onClick={() =>
+              handleNavigation("settings")
             }
             className={`
-              flex
-              w-full
-              items-center
-              rounded-lg
-              px-3
-              py-2.5
-              text-[var(--muted)]
-              opacity-45
+              group relative flex w-full
+              items-center rounded-lg
+              px-3 py-2.5
+              text-sm font-medium
+              transition
+
               ${
                 collapsed
                   ? "justify-center"
                   : "gap-3"
               }
+
+              ${
+                currentPage === "settings"
+                  ? `
+                    bg-[var(--accent-soft)]
+                    text-[var(--foreground)]
+                  `
+                  : `
+                    text-[var(--muted)]
+                    hover:bg-[var(--muted)]/10
+                    hover:text-[var(--foreground)]
+                  `
+              }
             `}
           >
-            <span className="flex h-5 w-5 items-center justify-center">
+            {/* Settings icon */}
+            <span
+              className="
+                flex h-5 w-5 shrink-0
+                items-center justify-center
+                text-base
+              "
+              aria-hidden="true"
+            >
               ⚙
             </span>
 
+            {/* Settings label */}
             {!collapsed && (
-              <span className="text-sm font-medium">
+              <span className="truncate">
+                {t("settings")}
+              </span>
+            )}
+
+            {/* Collapsed tooltip */}
+            {collapsed && (
+              <span
+                className="
+                  pointer-events-none
+                  absolute left-full z-50 ml-3
+                  hidden whitespace-nowrap
+                  rounded-md
+                  border border-[var(--border)]
+                  bg-[var(--surface)]
+                  px-3 py-1.5
+                  text-xs
+                  text-[var(--foreground)]
+                  shadow-lg
+                  group-hover:block
+                "
+              >
                 {t("settings")}
               </span>
             )}
