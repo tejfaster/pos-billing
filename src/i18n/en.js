@@ -92,4 +92,36 @@ export const en = {
   appearanceDescription: "Adjust the application theme and text size.",
   themeAndTextSize: "Theme & Text Size",
   themeAndTextSizeDescription:"Choose your preferred theme and adjust the text size.",
+  
+  signup: "Sign Up",
+  createAccount: "Create Account",
+  alreadyHaveAccount: "Already have an account?",
+  login: "Login",
+
+  firstName: "First Name",
+  lastName: "Last Name",
+  phoneNumber: "Phone Number",
+  email: "Email",
+  password: "Password",
+  confirmPassword: "Confirm Password",
+
+  firstNamePlaceholder: "Enter your first name",
+  lastNamePlaceholder: "Enter your last name",
+  phoneNumberPlaceholder: "Enter your phone number",
+  emailPlaceholder: "Enter your email",
+  passwordPlaceholder: "Enter your password",
+  confirmPasswordPlaceholder: "Confirm your password",
+
+  passwordRequirements: "Password requirements",
+  passwordMinLength: "At least 8 characters",
+  passwordUppercase: "One uppercase letter",
+  passwordLowercase: "One lowercase letter",
+  passwordNumber: "One number",
+  passwordSpecial: "One special character",
+
+  showPassword: "Show password",
+  hidePassword: "Hide password",
+  dontHaveAccount: "Don't have an account?",
+  loginSubtitle: "Sign in to continue to your POS account.",
+  loginSubtitle: "अपने POS अकाउंट में जारी रखने के लिए लॉगिन करें।",
 };
