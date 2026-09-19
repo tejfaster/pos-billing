@@ -3,6 +3,7 @@ import { useState } from "react";
 import MainLayout from "./components/layout/MainLayout";
 import Billing from "./pages/Billing";
 import Products from "./pages/Products";
+import Settings from "./pages/Setting";
 
 export default function App() {
   const [currentPage, setCurrentPage] =
@@ -12,6 +13,9 @@ export default function App() {
     switch (currentPage) {
       case "products":
         return <Products />;
+
+      case "settings":
+        return <Settings />;
 
       case "billing":
       default:

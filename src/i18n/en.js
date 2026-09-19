@@ -87,4 +87,9 @@ export const en = {
   date: "Date",
   customerForm: "Customer / Form",
   serialNumber: "S.No",
+  settingsDescription: "Customize the appearance and accessibility of the application.",
+  appearance: "Appearance",
+  appearanceDescription: "Adjust the application theme and text size.",
+  themeAndTextSize: "Theme & Text Size",
+  themeAndTextSizeDescription:"Choose your preferred theme and adjust the text size.",
 };
