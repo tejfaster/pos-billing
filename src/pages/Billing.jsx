@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import ItemSearch from "../features/billing/components/ItemSearch";
 import ItemList from "../features/billing/components/ItemList";
 import BillPrint from "../features/billing/components/BillPrint";
-import AccessibilityControls from "../components/common/AccessibilityControls";
+// import AccessibilityControls from "../components/common/AccessibilityControls";
 import useBilling from "../features/billing/hooks/useBilling";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -98,7 +98,6 @@ export default function Billing() {
               </p>
             </div>
 
-            <AccessibilityControls />
           </div>
 
           <div className="shrink-0">
