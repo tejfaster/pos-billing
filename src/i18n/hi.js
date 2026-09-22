@@ -122,4 +122,71 @@ export const hi = {
   showPassword: "पासवर्ड दिखाएं",
   hidePassword: "पासवर्ड छिपाएं",
   dontHaveAccount: "क्या आपके पास अकाउंट नहीं है?",
+  loginSubtitle: "अपने POS अकाउंट में जारी रखने के लिए लॉगिन करें।",
+
+  administrator: "व्यवस्थापक",
+  user: "उपयोगकर्ता",
+  logout: "लॉग आउट",
+
+  profile: "प्रोफ़ाइल",
+  profileSubtitle: "अपने खाते की जानकारी प्रबंधित करें।",
+
+  personalInformation: "व्यक्तिगत जानकारी",
+  personalInformationSubtitle:"आपके व्यक्तिगत खाते का विवरण।",
+
+  accountInformation: "खाता जानकारी",
+  accountInformationSubtitle:"आपके POS खाते की जानकारी।",
+
+  role: "भूमिका",
+  accountStatus: "खाते की स्थिति",
+  memberSince: "सदस्य बने",
+  userId: "यूज़र आईडी",
+
+  security: "सुरक्षा",
+  securitySubtitle:"अपने खाते की सुरक्षा प्रबंधित करें।",
+
+  passwordDescription:"आपका पासवर्ड सुरक्षित रूप से संग्रहीत है।",
+  changePassword: "पासवर्ड बदलें",
+
+  active: "सक्रिय",
+  disabled: "निष्क्रिय",
+
+  administrator: "व्यवस्थापक",
+  user: "उपयोगकर्ता",
+
+  currentPassword: "वर्तमान पासवर्ड",
+  newPassword: "नया पासवर्ड",
+  currentPasswordRequired:"वर्तमान पासवर्ड आवश्यक है।",
+  invalidCurrentPassword:"वर्तमान पासवर्ड गलत है।",
+  samePassword:"नया पासवर्ड वर्तमान पासवर्ड से अलग होना चाहिए।",
+  passwordChangedSuccessfully:"पासवर्ड सफलतापूर्वक बदल दिया गया है।",
+  changePasswordSubtitle:"अपने खाते को सुरक्षित रखने के लिए अपना पासवर्ड बदलें।",
+  backToProfile:"प्रोफ़ाइल पर वापस जाएँ",
+  changingPassword:"पासवर्ड बदला जा रहा है...",
+  cancel: "रद्द करें",
+  passwordRequired: "पासवर्ड आवश्यक है।",
+  
+  forgotPassword: "पासवर्ड भूल गए?",
+  forgotPasswordSubtitle:"अपना ईमेल पता दर्ज करें और हम आपको सत्यापन कोड भेजेंगे।",
+  sendVerificationCode: "सत्यापन कोड भेजें",
+  sending: "भेजा जा रहा है...",
+  verificationCodeSentTo: "सत्यापन कोड भेजा गया है",
+  verificationCode: "सत्यापन कोड",
+  verifyCode: "कोड सत्यापित करें",
+  verifying: "सत्यापित किया जा रहा है...",
+  resendCode: "कोड दोबारा भेजें",
+  invalidOtp: "6 अंकों का सत्यापन कोड दर्ज करें।",
+  otpCooldown:"कृपया नया सत्यापन कोड मांगने से पहले प्रतीक्षा करें।",
+  back: "वापस",
+  backToLogin: "लॉगिन पर वापस जाएं",
+
+  newPassword: "नया पासवर्ड",
+  newPasswordPlaceholder: "अपना नया पासवर्ड दर्ज करें",
+  confirmPassword: "पासवर्ड की पुष्टि करें",
+  confirmPasswordPlaceholder:"अपना नया पासवर्ड फिर से दर्ज करें",
+  passwordRequirements: "पासवर्ड की आवश्यकताएं",
+  resetPassword: "पासवर्ड रीसेट करें",
+  resettingPassword: "पासवर्ड रीसेट किया जा रहा है...",
+  resetPasswordSubtitle:"अपने खाते के लिए नया पासवर्ड बनाएं।",
+  
 };

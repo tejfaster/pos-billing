@@ -1,487 +1,489 @@
 # POS Billing System
 
-A modern, responsive Point of Sale (POS) billing application designed for hardware and building-material businesses.
+A modern, responsive Point of Sale (POS) billing application designed
+for hardware and building-material businesses.
 
-The project is being developed incrementally with a focus on simple billing, product management, accessibility, localization, responsive design, and a scalable frontend architecture.
+The project is being developed incrementally with a focus on practical
+billing, product management, authentication, accessibility,
+localization, responsive design, and a scalable full-stack architecture.
 
----
+------------------------------------------------------------------------
 
 ## 🚧 Project Status
 
-The project is currently in the **frontend development phase**.
+The project has moved from frontend-only development to a **full-stack
+foundation**.
 
 ### Currently implemented
 
-- Product search
-- Product selection
-- Add products to bill
-- Duplicate product quantity handling
-- Decimal quantities
-- Editable quantity
-- Editable rate
-- Automatic price calculation
-- Automatic bill total
-- Remove items
-- Start a new bill
-- Scrollable selected-item area
-- Responsive layout
-- Mobile navigation
-- Collapsible desktop sidebar
-- Light mode
-- Dark mode
+- Product search, selection, billing quantities and rates
+- Automatic item price and bill total calculation
+- Remove items and start a new bill
+- Responsive billing interface
+- Mobile navigation and collapsible desktop sidebar
+- Light and dark mode
 - Text-size accessibility controls
-- English language
-- Hindi language
-- Persistent language preference
-- Persistent theme preference
-- Persistent text-size preference
-- A4 print layout
-- Customer / Form area on printed bill
-- Printed quantity
-- Printed rate
-- Printed price
-- Printed total
-- Currency formatting with ₹ in printed amounts
+- English and Hindi localization with persisted preferences
+- A4 print layout with localized labels and ₹ currency formatting
+- Product list, search, add, edit and delete
+- Product code / SKU, brand, category and unit selection
+- User signup and login
+- Server-side sessions with session restoration and logout
+- User roles (`user` / `admin`) and account status (`active` /
+  `disabled`)
+- Protected authentication API routes
+- Email-based password reset with OTP
+- OTP expiration, attempt limits and resend cooldown
+- Secure OTP hashing and one-time password-reset tokens
+- Session invalidation after successful password reset
+- SMTP email delivery using Nodemailer
+- Frontend and backend authentication validation
 
-### Product management
+### Current password reset flow
 
-- Product list
-- Product search
-- Add product
-- Edit product
-- Delete product
+``` text
+Login
+  ↓
+Forgot password?
+  ↓
+Enter email
+  ↓
+Send verification code
+  ↓
+Enter OTP
+  ↓
+Verify code
+  ↓
+Create new password
+  ↓
+Confirm password
+  ↓
+Password reset
+  ↓
+Login
+```
+
+------------------------------------------------------------------------
+
+## ✨ Features
+
+### 🧾 Billing
+
+The billing screen supports product search by name, product code or
+brand, adding products, decimal quantities, editable quantities and
+rates, automatic price calculation, bill totals, item removal, new bills
+and printing.
+
+Calculation:
+
+``` text
+Price = Quantity × Rate
+Total = Sum of all item prices
+```
+
+### 📦 Product Management
+
+The product master currently supports:
+
 - Product name
 - Product code / SKU
 - Brand
 - Category
-- Product information form
-- Product unit selection interface
+- Product search
+- Add, edit and delete
+- Product unit selection
 
----
+Product names, brands and SKUs are user-entered business data and are
+not automatically translated when the application language changes.
 
-# ✨ Features
+### 🔐 Authentication
 
-## 🧾 Billing
+Authentication is implemented as a dedicated frontend feature backed by
+a Node.js / Express API and PostgreSQL.
 
-The current billing screen allows users to:
-
-- Search for products
-- Search by product name, product code, or brand
-- Add products to the bill
-- Increase/decrease quantity
-- Enter decimal quantities
-- Edit quantity directly
-- Enter custom rates
-- Automatically calculate item prices
-- Automatically calculate the bill total
-- Remove products
-- Start a new bill
-- Scroll through selected items independently
-- Print the item list
-
-Example:
-
-```text
-Product             Qty       Rate       Price
-
-PPC Cement          1.6        23        36.80
-White Cement          1         7         7.00
-River Sand            1        87        87.00
-
-                                      Total: 130.80
+``` text
+React + Vite
+    ↓
+Authentication Service
+    ↓
+Express API
+    ↓
+Auth Controller / Services
+    ↓
+PostgreSQL
 ```
 
----
+Frontend authentication files:
 
-# 📦 Product Management
-
-The product management screen provides the foundation for maintaining the product master.
-
-Users can:
-
-- View products
-- Search products
-- Add products
-- Edit products
-- Delete products
-- Select categories
-- Enter product codes / SKUs
-- Enter brands
-- Manage product information
-- Manage the existing product-unit selection interface
-
-The current product structure intentionally keeps core product information simple:
-
-```text
-Product
-├── Name
-├── Code / SKU
-├── Brand
-└── Category
+``` text
+src/features/authentication/
+├── components/
+│   ├── AuthLayout.jsx
+│   ├── LoginForm.jsx
+│   ├── SignupForm.jsx
+│   ├── VerifyOtpForm.jsx
+│   └── ResetPasswordForm.jsx
+├── services/authService.js
+├── validation/authValidation.js
+└── utils/authErrors.js
 ```
 
-Product names, brands, and SKUs are user-entered business data and are not automatically translated when the application language changes.
+Authentication pages include:
 
----
-
-# 🌐 Language Support
-
-The application currently supports:
-
-```text
-English
-Hindi
+``` text
+src/pages/
+├── Login.jsx
+├── Signup.jsx
+├── ForgotPassword.jsx
+├── ChangePassword.jsx
+└── Profile.jsx
 ```
 
-Users can switch between English and Hindi directly from the application header.
+Authentication state is managed by:
 
-The selected language is stored locally and remains available after refreshing the application.
+``` text
+src/context/AuthContext.jsx
+```
 
-Language support covers:
+### 📧 Password Reset
 
-- Navigation
-- Billing
-- Product management
-- Search
-- Forms
-- Buttons
-- Empty states
-- Confirmation messages
-- Accessibility controls
-- Print layout
+Password reset uses email OTP rather than SMS.
 
-Translation files:
+``` text
+User enters email
+      ↓
+Generate secure OTP
+      ↓
+Store OTP hash
+      ↓
+Send email
+      ↓
+Verify OTP
+      ↓
+Generate short-lived reset token
+      ↓
+Set new password
+      ↓
+Consume reset token
+      ↓
+Invalidate existing sessions
+```
 
-```text
+Security controls include:
+
+- Cryptographically generated six-digit OTPs
+- HMAC-SHA256 OTP hashes
+- OTP expiration
+- Maximum verification attempts
+- Resend cooldown
+- Generic reset-request response to reduce account enumeration
+- Random password-reset tokens
+- SHA-256 reset-token hashes
+- Reset-token expiration and one-time use
+- Argon2 password hashing
+- Session invalidation after password reset
+
+### 🌐 Language Support
+
+The application supports English and Hindi. Language preference is
+persisted locally.
+
+``` text
 src/i18n/en.js
 src/i18n/hi.js
-```
-
-Language state:
-
-```text
 src/context/LanguageContext.jsx
 ```
 
----
+### 🔤 Accessibility
 
-# 🔤 Text Size Accessibility
+Four text-size levels are available:
 
-The application provides four text-size options.
-
-### English
-
-```text
+``` text
 A−   A   A+   A++
 ```
 
-### Hindi
+The selected text size is persisted locally.
 
-```text
-अ−   अ   अ+   अ++
-```
-
-Available levels:
-
-```text
-Small
-Default
-Large
-Extra Large
-```
-
-The selected text size is stored locally so the preference remains available after refreshing the application.
-
----
-
-# 🌙 Theme
-
-The application supports:
+### 🌙 Theme
 
 - Light mode
 - Dark mode
 
-Theme preference is persisted locally.
+Theme preference is persisted locally and uses CSS variables for
+consistent theming.
 
-The application uses CSS variables for its main theme colors so the interface can switch consistently between themes.
+### 📱 Responsive Design
 
----
+The application is designed for mobile phones, tablets, laptops and
+desktop screens, including a mobile navigation drawer and collapsible
+desktop sidebar.
 
-# 📱 Responsive Design
+### 🖨️ Printing
 
-The application is designed to work across:
+The application has a dedicated A4 printable bill layout containing
+date, customer/form field, serial number, item, quantity, rate, price
+and total. Normal navigation and application UI are excluded from
+printed output.
 
-- Mobile phones
-- Tablets
-- Laptops
-- Desktop screens
+------------------------------------------------------------------------
 
-The layout includes:
+## 🏗️ Project Architecture
 
-- Responsive sidebar
-- Mobile navigation drawer
-- Collapsible desktop sidebar
-- Responsive billing interface
-- Responsive product management interface
-- Scrollable billing item area
-
----
-
-# 🖨️ Printing
-
-The application has a dedicated printable bill layout.
-
-The normal application interface is hidden during printing.
-
-The printed layout contains:
-
-- Date
-- Customer / Form field
-- Serial number
-- Item
-- Quantity
-- Rate
-- Price
-- Total
-
-Example:
-
-```text
-Date: 19/9/2026     Customer / Form: ___________________________
-
-┌──────┬──────────────────────────────┬─────┬────────┬────────┐
-│ S.No │ Item                         │ Qty │  Rate  │ Price  │
-├──────┼──────────────────────────────┼─────┼────────┼────────┤
-│  1   │ PPC Cement                   │  2  │ ₹12.00 │ ₹24.00 │
-│  2   │ White Cement                 │  3  │ ₹123.00│ ₹369.00│
-└──────┴──────────────────────────────┴─────┴────────┴────────┘
-
-                                      Total: ₹393.00
-```
-
-The print layout is designed for A4 paper.
-
-Printed labels follow the currently selected application language.
-
-The application header, navigation controls, sidebar, and other normal UI elements are excluded from the printable output.
-
----
-
-# 🧮 Calculation Logic
-
-For each billing item:
-
-```text
-Price = Quantity × Rate
-```
-
-Example:
-
-```text
-Quantity = 1.5
-Rate = ₹23
-
-Price = 1.5 × 23
-      = ₹34.50
-```
-
-The bill total is:
-
-```text
-Total = Sum of all item prices
-```
-
-The total remains blank until every selected item has a valid rate.
-
----
-
-# 📏 Units
-
-The application contains a separate reusable unit master:
-
-```text
-src/data/units.js
-```
-
-Unit definitions are maintained separately from the core product information.
-
-The current application does not store unit conversion calculations in the core product master.
-
-Future inventory and selling workflows may introduce additional business rules around units and quantities after the required business model is finalized.
-
----
-
-# 🏗️ Project Architecture
-
-The application follows a feature-oriented structure.
-
-```text
-src/
-├── assets/
+``` text
+pos-billing/
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── db/
+│   │   │   ├── migrations/
+│   │   │   └── seedAdmin.js
+│   │   ├── middleware/
+│   │   ├── routes/
+│   │   └── services/
+│   ├── .env
+│   ├── package.json
+│   └── README.md
 │
-├── components/
-│   ├── common/
-│   │   └── AccessibilityControls.jsx
-│   │
-│   └── layout/
-│       ├── Header.jsx
-│       ├── MainLayout.jsx
-│       └── Sidebar.jsx
+├── src/
+│   ├── assets/
+│   ├── components/
+│   │   ├── common/
+│   │   └── layout/
+│   ├── context/
+│   ├── data/
+│   ├── i18n/
+│   ├── features/
+│   │   ├── billing/
+│   │   ├── products/
+│   │   └── authentication/
+│   ├── pages/
+│   ├── App.jsx
+│   ├── index.css
+│   └── main.jsx
 │
-├── context/
-│   ├── ThemeContext.jsx
-│   ├── ProductContext.jsx
-│   └── LanguageContext.jsx
-│
-├── data/
-│   ├── categories.js
-│   ├── units.js
-│   └── products.js
-│
-├── i18n/
-│   ├── en.js
-│   └── hi.js
-│
-├── features/
-│   ├── billing/
-│   │   ├── components/
-│   │   │   ├── ItemSearch.jsx
-│   │   │   ├── ItemList.jsx
-│   │   │   ├── ItemRow.jsx
-│   │   │   └── BillPrint.jsx
-│   │   │
-│   │   └── hooks/
-│   │       └── useBilling.js
-│   │
-│   └── products/
-│       └── components/
-│           ├── ProductList.jsx
-│           ├── ProductForm.jsx
-│           └── ProductUnitList.jsx
-│
-├── pages/
-│   ├── Billing.jsx
-│   └── Products.jsx
-│
-├── App.jsx
-├── index.css
-└── main.jsx
+├── .env.local
+├── .gitignore
+├── package.json
+└── README.md
 ```
 
----
+### Backend authentication structure
 
-# 🧩 Architecture Principles
-
-The project is structured so that features can grow without putting everything into one large component.
-
-## Pages
-
-Pages compose complete screens:
-
-```text
-pages/
-├── Billing.jsx
-└── Products.jsx
+``` text
+backend/src/
+├── config/database.js
+├── controllers/authController.js
+├── db/
+│   ├── migrations/
+│   │   ├── 001_create_users.sql
+│   │   ├── 002_create_sessions.sql
+│   │   ├── 003_create_email_otp_challenges.sql
+│   │   └── 004_create_password_reset_tokens.sql
+│   └── seedAdmin.js
+├── middleware/authMiddleware.js
+├── routes/authRoutes.js
+└── services/
+    ├── authService.js
+    ├── sessionService.js
+    ├── emailService.js
+    └── otpService.js
 ```
 
-## Features
+### Database tables currently used by authentication
 
-Feature-specific functionality lives inside its feature folder:
-
-```text
-features/
-├── billing/
-└── products/
+``` text
+users
+sessions
+email_otp_challenges
+password_reset_tokens
 ```
 
-## Components
+------------------------------------------------------------------------
 
-Reusable UI components are separated from page-level logic:
+## 🔄 Data Flows
 
-```text
-components/
-├── common/
-└── layout/
-```
+### Billing
 
-## Context
-
-Shared application state is handled through React Context:
-
-```text
-context/
-├── ThemeContext.jsx
-├── ProductContext.jsx
-└── LanguageContext.jsx
-```
-
-## Data
-
-Static and temporary master data currently lives under:
-
-```text
-data/
-├── products.js
-├── categories.js
-└── units.js
-```
-
-This will eventually be replaced or supplemented by backend/database data.
-
----
-
-# 🔄 Billing Data Flow
-
-The current billing flow is:
-
-```text
+``` text
 Product Data
-     ↓
+    ↓
 Item Search
-     ↓
+    ↓
 Add Product
-     ↓
+    ↓
 Billing State
-     ↓
+    ↓
 Item List
-     ↓
+    ↓
 Quantity + Rate
-     ↓
+    ↓
 Price Calculation
-     ↓
+    ↓
 Total Calculation
-     ↓
+    ↓
 Print
 ```
 
-The billing state is managed through:
+Billing state is managed through
+`src/features/billing/hooks/useBilling.js`.
 
-```text
-src/features/billing/hooks/useBilling.js
+### Authentication
+
+``` text
+React UI
+  ↓
+authService.js
+  ↓
+Express API
+  ↓
+Auth Controller
+  ↓
+Auth / Session / OTP Services
+  ↓
+PostgreSQL
 ```
 
----
+Authenticated requests use the server-side session cookie and backend
+authentication middleware.
 
-# 🛣️ Development Roadmap
+------------------------------------------------------------------------
 
-## Phase 1 — Billing Foundation
+## 🛠️ Technology Stack
+
+### Frontend
+
+- React
+- Vite
+- Tailwind CSS
+- JavaScript / JSX
+- React Context and hooks
+
+### Backend
+
+- Node.js
+- Express
+- JavaScript / ES Modules
+- `pg`
+- Argon2
+- Nodemailer
+- CORS
+- cookie-parser
+- dotenv
+
+### Database
+
+- PostgreSQL
+
+### Current frontend data
+
+- Local/static JavaScript data for the current product master
+- Browser local storage for user interface preferences
+
+------------------------------------------------------------------------
+
+## 🚀 Getting Started
+
+The repository contains separate frontend and backend applications.
+
+### Frontend
+
+From the project root:
+
+``` bash
+npm install
+```
+
+Create `.env.local`:
+
+``` env
+VITE_API_URL=http://localhost:5001/api
+```
+
+Start the frontend:
+
+``` bash
+npm run dev
+```
+
+Frontend:
+
+``` text
+http://localhost:5173
+```
+
+Production build:
+
+``` bash
+npm run build
+```
+
+Preview:
+
+``` bash
+npm run preview
+```
+
+### Backend
+
+``` bash
+cd backend
+npm install
+```
+
+Create `backend/.env` with the PostgreSQL, session, admin and SMTP
+settings required by the backend. Keep real credentials out of Git.
+
+The backend normally runs on:
+
+``` text
+http://localhost:5001
+```
+
+Apply the SQL migrations in:
+
+``` text
+backend/src/db/migrations/
+```
+
+The current authentication migrations create the four authentication
+tables listed above. The backend also contains `seedAdmin.js` for
+creating the initial administrator from environment variables.
+
+------------------------------------------------------------------------
+
+## 🔗 Authentication API
+
+Current authentication endpoints:
+
+``` text
+POST /api/auth/signup
+POST /api/auth/login
+GET  /api/auth/me
+POST /api/auth/logout
+POST /api/auth/change-password
+POST /api/auth/password-reset/request
+POST /api/auth/password-reset/verify
+POST /api/auth/password-reset/confirm
+```
+
+------------------------------------------------------------------------
+
+## 🛣️ Development Roadmap
+
+### Phase 1 — Billing Foundation
 
 - [x] Product search
 - [x] Product selection
-- [x] Add items
-- [x] Remove items
-- [x] Quantity controls
-- [x] Decimal quantities
-- [x] Editable quantity
-- [x] Editable rate
-- [x] Price calculation
-- [x] Total calculation
+- [x] Add / remove items
+- [x] Quantity controls and decimal quantities
+- [x] Editable quantity and rate
+- [x] Price and total calculation
 - [x] New Bill
 - [x] Responsive layout
-- [x] Internal item scrolling
 - [x] Print layout
 
-## Phase 2 — UI, Accessibility & Localization
+### Phase 2 — UI, Accessibility & Localization
 
 - [x] Light mode
 - [x] Dark mode
@@ -489,15 +491,11 @@ src/features/billing/hooks/useBilling.js
 - [x] Responsive design
 - [x] Mobile navigation
 - [x] Collapsible sidebar
-- [x] English language
-- [x] Hindi language
-- [x] Persistent language preference
-- [x] Persistent theme preference
-- [x] Persistent text-size preference
+- [x] English and Hindi
+- [x] Persistent language, theme and text-size preferences
 - [x] Localized print layout
-- [x] Print-only layout cleanup
 
-## Phase 3 — Product Management
+### Phase 3 — Product Management
 
 - [x] Product list
 - [x] Product search
@@ -510,7 +508,27 @@ src/features/billing/hooks/useBilling.js
 - [x] Product information form
 - [x] Product unit selection interface
 
-## Phase 4 — Billing Improvements
+### Phase 4 — Authentication & User Management
+
+- [x] Signup
+- [x] Login
+- [x] Server-side sessions
+- [x] Session restoration
+- [x] Logout
+- [x] User roles
+- [x] Account status
+- [x] Protected backend routes
+- [x] Password change backend support
+- [x] Forgot-password request
+- [x] Email OTP verification
+- [x] Password reset
+- [x] OTP expiration and attempt limits
+- [x] OTP resend cooldown
+- [x] Reset-token expiration and one-time use
+- [x] Session invalidation after password reset
+- [x] Frontend authentication integration
+
+### Phase 5 — Billing Improvements
 
 - [ ] Customer / Form field in billing UI
 - [ ] Bill number
@@ -520,7 +538,7 @@ src/features/billing/hooks/useBilling.js
 - [ ] Bill draft handling
 - [ ] Saved bills
 
-## Phase 5 — Customer Management
+### Phase 6 — Customer Management
 
 - [ ] Customer list
 - [ ] Add customer
@@ -529,7 +547,7 @@ src/features/billing/hooks/useBilling.js
 - [ ] Customer history
 - [ ] Customer-wise bills
 
-## Phase 6 — Bill History
+### Phase 7 — Bill History
 
 - [ ] Save bills
 - [ ] Bill history
@@ -540,18 +558,17 @@ src/features/billing/hooks/useBilling.js
 - [ ] Filter by customer
 - [ ] Bill details
 
-## Phase 7 — Inventory
+### Phase 8 — Inventory
 
 - [ ] Stock management
-- [ ] Stock in
-- [ ] Stock out
+- [ ] Stock in / stock out
 - [ ] Stock history
 - [ ] Low-stock alerts
 - [ ] Inventory calculations
 - [ ] Loose quantity handling
 - [ ] Package handling
 
-## Phase 8 — Payments & Credit
+### Phase 9 — Payments & Credit
 
 - [ ] Cash payments
 - [ ] UPI
@@ -562,7 +579,7 @@ src/features/billing/hooks/useBilling.js
 - [ ] Outstanding amount
 - [ ] Payment history
 
-## Phase 9 — Reports
+### Phase 10 — Reports
 
 - [ ] Daily sales
 - [ ] Monthly sales
@@ -573,31 +590,27 @@ src/features/billing/hooks/useBilling.js
 - [ ] Inventory reports
 - [ ] Stock movement reports
 
-## Phase 10 — Backend
+### Phase 11 — Backend Business Features
 
-The frontend will eventually connect to a backend API.
+- [ ] Product API
+- [ ] Category API
+- [ ] Unit API
+- [ ] Customer API
+- [ ] Bill API
+- [ ] Bill-item persistence
+- [ ] Inventory API
+- [ ] Payment API
+- [ ] Business-data database model
+- [ ] Role-based authorization across business features
 
-Planned high-level architecture:
+------------------------------------------------------------------------
 
-```text
-React Frontend
-      ↓
-Backend API
-      ↓
-Business Logic
-      ↓
-Database
-```
-
-The exact backend framework, database architecture, and API structure will be decided after the frontend data model and business rules are stable.
-
----
-
-# 🗄️ Planned Data Model
+## 🗄️ Planned Business Data Model
 
 The future system is expected to contain entities such as:
 
-```text
+``` text
+User
 Product
 Category
 Unit
@@ -607,224 +620,77 @@ BillItem
 Inventory
 StockMovement
 Payment
-User
 ```
 
-Additional entities may be introduced as business requirements become clearer.
+The final business data model will be designed around the actual
+workflows required by hardware and building-material businesses.
 
-The final data model will be designed around the actual workflows required by hardware and building-material businesses.
+------------------------------------------------------------------------
 
----
+## 📁 Important Files
 
-# 🛠️ Technology Stack
+### Frontend
 
-## Frontend
-
-- React
-- Vite
-- Tailwind CSS
-- JavaScript / JSX
-
-## Current State Management
-
-- React hooks
-- React Context
-
-## Current Data
-
-- Local/static JavaScript data
-- Browser local storage for user preferences
-
-## Planned Backend
-
-- Backend API
-- Database
-- Persistent business data
-- Authentication
-- User management
-- Roles and permissions
-
-The final backend technology will be selected after the frontend data model and business rules are finalized.
-
----
-
-# 🚀 Getting Started
-
-## Install dependencies
-
-```bash
-npm install
-```
-
-## Start development server
-
-```bash
-npm run dev
-```
-
-The application will normally be available at:
-
-```text
-http://localhost:5173
-```
-
-## Build for production
-
-```bash
-npm run build
-```
-
-## Preview production build
-
-```bash
-npm run preview
-```
-
----
-
-# 📁 Important Files
-
-### Application entry
-
-```text
+``` text
 src/main.jsx
-```
-
-### Main application
-
-```text
 src/App.jsx
-```
-
-### Billing page
-
-```text
-src/pages/Billing.jsx
-```
-
-### Product management page
-
-```text
-src/pages/Products.jsx
-```
-
-### Billing state
-
-```text
-src/features/billing/hooks/useBilling.js
-```
-
-### Product search
-
-```text
-src/features/billing/components/ItemSearch.jsx
-```
-
-### Billing item list
-
-```text
-src/features/billing/components/ItemList.jsx
-```
-
-### Individual billing row
-
-```text
-src/features/billing/components/ItemRow.jsx
-```
-
-### Printable bill
-
-```text
-src/features/billing/components/BillPrint.jsx
-```
-
-### Product list
-
-```text
-src/features/products/components/ProductList.jsx
-```
-
-### Product form
-
-```text
-src/features/products/components/ProductForm.jsx
-```
-
-### Product units
-
-```text
-src/features/products/components/ProductUnitList.jsx
-```
-
-### Product data
-
-```text
-src/data/products.js
-```
-
-### Categories
-
-```text
-src/data/categories.js
-```
-
-### Units
-
-```text
-src/data/units.js
-```
-
-### Theme and text-size settings
-
-```text
-src/context/ThemeContext.jsx
-```
-
-### Product state
-
-```text
-src/context/ProductContext.jsx
-```
-
-### Language state
-
-```text
+src/context/AuthContext.jsx
 src/context/LanguageContext.jsx
-```
-
-### English translations
-
-```text
-src/i18n/en.js
-```
-
-### Hindi translations
-
-```text
-src/i18n/hi.js
-```
-
-### Accessibility controls
-
-```text
-src/components/common/AccessibilityControls.jsx
-```
-
-### Global styles and print styles
-
-```text
+src/pages/Billing.jsx
+src/pages/Products.jsx
+src/pages/Login.jsx
+src/pages/Signup.jsx
+src/pages/ForgotPassword.jsx
+src/pages/ChangePassword.jsx
+src/pages/Profile.jsx
+src/features/authentication/services/authService.js
+src/features/authentication/components/VerifyOtpForm.jsx
+src/features/authentication/components/ResetPasswordForm.jsx
+src/features/billing/hooks/useBilling.js
 src/index.css
 ```
 
----
+### Backend
 
-# 🎯 Project Goal
+``` text
+backend/src/app.js
+backend/src/config/database.js
+backend/src/controllers/authController.js
+backend/src/middleware/authMiddleware.js
+backend/src/routes/authRoutes.js
+backend/src/services/authService.js
+backend/src/services/sessionService.js
+backend/src/services/otpService.js
+backend/src/services/emailService.js
+backend/src/db/seedAdmin.js
+```
 
-The goal is to build a practical POS system for hardware and building-material businesses.
+------------------------------------------------------------------------
+
+## 🔒 Security Notes
+
+- Never commit `.env` or `.env.local`.
+- Never commit SMTP passwords, app passwords or database credentials.
+- Never commit `cookies.txt`.
+- Passwords are hashed with Argon2 on the backend.
+- Session tokens are stored as hashes in PostgreSQL.
+- Plaintext OTP values are not stored in PostgreSQL.
+- Password-reset tokens are stored as hashes.
+- Password-reset tokens expire and can only be used once.
+- Existing sessions are invalidated after a successful password reset.
+- Password-reset requests use a generic response to reduce account
+  enumeration.
+
+------------------------------------------------------------------------
+
+## 🎯 Project Goal
+
+The goal is to build a practical POS system for hardware and
+building-material businesses.
 
 The long-term system is intended to cover:
 
-```text
+``` text
 Products
    ↓
 Billing
@@ -846,32 +712,32 @@ Database
 Authentication & Permissions
 ```
 
-The application is being developed incrementally so that each major feature can be built, tested, and stabilized before expanding the system further.
+The application is being developed incrementally so each major feature
+can be built, tested and stabilized before expanding the system further.
 
----
+------------------------------------------------------------------------
 
-# 📌 Development Approach
-
-The project is being developed incrementally.
+## 📌 Development Approach
 
 The current approach is:
 
-1. Build and stabilize the billing experience.
-2. Build product management.
-3. Add accessibility and localization.
-4. Build customer and bill management.
-5. Add inventory.
-6. Add purchasing and suppliers.
-7. Add payments and credit.
-8. Add reports.
-9. Connect the application to a backend and database.
-10. Add authentication and permissions.
+1.  Build and stabilize the billing experience.
+2.  Build product management.
+3.  Add accessibility and localization.
+4.  Build authentication and user management.
+5.  Connect persistent business data to the backend and database.
+6.  Build customer and bill management.
+7.  Add inventory.
+8.  Add purchasing and suppliers.
+9.  Add payments and credit.
+10. Add reports.
 11. Prepare the system for production use.
 
-The architecture should remain modular so new features can be added without rebuilding the existing billing functionality.
+The architecture should remain modular so new features can be added
+without rebuilding the existing billing functionality.
 
----
+------------------------------------------------------------------------
 
-# 📄 License
+## 📄 License
 
 This project is currently under development.
