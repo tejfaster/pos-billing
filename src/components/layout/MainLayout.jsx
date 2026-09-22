@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import Sidebar from "./Sidebar";
+
 import { useLanguage } from "../../context/LanguageContext";
 
 export default function MainLayout({
@@ -17,14 +18,21 @@ export default function MainLayout({
   const { language, setLanguage, t } =
     useLanguage();
 
+  const pageTitles = {
+    billing: t("billing"),
+    products: t("products"),
+    settings: t("settings"),
+    profile: t("profile"),
+    "change-password": t("changePassword"),
+  };
+
   const pageTitle =
-    currentPage === "billing"
-      ? t("billing")
-      : currentPage === "products"
-        ? t("products")
-        : currentPage === "settings"
-          ? t("settings")
-          : "";
+    pageTitles[currentPage] || "";
+
+  const handleNavigate = (page) => {
+    onNavigate(page);
+    setMobileMenuOpen(false);
+  };
 
   return (
     <div
@@ -36,10 +44,12 @@ export default function MainLayout({
     >
       <Sidebar
         currentPage={currentPage}
-        onNavigate={onNavigate}
+        onNavigate={handleNavigate}
         collapsed={sidebarCollapsed}
         mobileOpen={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
+        onClose={() =>
+          setMobileMenuOpen(false)
+        }
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -115,7 +125,13 @@ export default function MainLayout({
 
             {/* Page title */}
             <div className="min-w-0">
-              <h1 className="truncate text-lg font-semibold">
+              <h1
+                className="
+                  truncate
+                  text-lg font-semibold
+                  text-[var(--foreground)]
+                "
+              >
                 {pageTitle}
               </h1>
             </div>
@@ -136,8 +152,12 @@ export default function MainLayout({
             >
               <button
                 type="button"
-                onClick={() => setLanguage("en")}
-                aria-pressed={language === "en"}
+                onClick={() =>
+                  setLanguage("en")
+                }
+                aria-pressed={
+                  language === "en"
+                }
                 className={`
                   rounded-md
                   px-2.5 py-1.5
@@ -161,8 +181,12 @@ export default function MainLayout({
 
               <button
                 type="button"
-                onClick={() => setLanguage("hi")}
-                aria-pressed={language === "hi"}
+                onClick={() =>
+                  setLanguage("hi")
+                }
+                aria-pressed={
+                  language === "hi"
+                }
                 className={`
                   rounded-md
                   px-2.5 py-1.5
@@ -188,7 +212,13 @@ export default function MainLayout({
         </header>
 
         {/* Page content */}
-        <main className="min-h-0 flex-1 overflow-hidden">
+        <main
+          className="
+            min-h-0
+            flex-1
+            overflow-hidden
+          "
+        >
           {children}
         </main>
       </div>
