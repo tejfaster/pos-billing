@@ -1,20 +1,65 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
+
+import authService from "../features/authentication/services/authService";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
 
+  const [isLoading, setIsLoading] =
+    useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function restoreSession() {
+      try {
+        const currentUser =
+          await authService.getCurrentUser();
+
+        if (isMounted) {
+          setUser(currentUser);
+        }
+      } catch (error) {
+        if (
+          error?.code !== "UNAUTHORIZED"
+        ) {
+          console.error(
+            "Failed to restore authentication:",
+            error
+          );
+        }
+
+        if (isMounted) {
+          setUser(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    restoreSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const login = (userData) => {
     setUser(userData);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await authService.logout();
     setUser(null);
   };
 
@@ -30,13 +75,19 @@ export function AuthProvider({ children }) {
     () => ({
       user,
       isAuthenticated: Boolean(user),
+      isLoading,
       isAdmin,
       isUser,
       hasRole,
       login,
       logout,
     }),
-    [user, isAdmin, isUser]
+    [
+      user,
+      isLoading,
+      isAdmin,
+      isUser,
+    ]
   );
 
   return (

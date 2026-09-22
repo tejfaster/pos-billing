@@ -123,5 +123,75 @@ export const en = {
   hidePassword: "Hide password",
   dontHaveAccount: "Don't have an account?",
   loginSubtitle: "Sign in to continue to your POS account.",
-  loginSubtitle: "अपने POS अकाउंट में जारी रखने के लिए लॉगिन करें।",
+  
+  administrator: "Administrator",
+  user: "User",
+  logout: "Logout",
+
+  profile: "Profile",
+  profileSubtitle: "Manage your account information.",
+
+  personalInformation: "Personal Information",
+  personalInformationSubtitle:"Your personal account details.",
+
+  firstName: "First Name",
+  lastName: "Last Name",
+  phoneNumber: "Phone Number",
+  email: "Email",
+
+  accountInformation: "Account Information",
+  accountInformationSubtitle:"Information about your POS account.",
+
+  role: "Role",
+  accountStatus: "Account Status",
+  memberSince: "Member Since",
+  userId: "User ID",
+
+  security: "Security",
+  securitySubtitle:"Manage your account security.",
+
+  password: "Password",
+  passwordDescription:"Your password is securely stored.",
+  changePassword: "Change Password",
+
+  active: "Active",
+  disabled: "Disabled",
+
+  administrator: "Administrator",
+  user: "User",
+
+  currentPassword: "Current Password",
+  newPassword: "New Password",
+  currentPasswordRequired:"Current password is required.",
+  invalidCurrentPassword:"Current password is incorrect.",
+  samePassword:"New password must be different from your current password.",
+  passwordChangedSuccessfully:"Password changed successfully.",
+  changePasswordSubtitle:"Update your password to keep your account secure.",
+  backToProfile:"Back to Profile",
+  changingPassword:"Changing Password...",
+  cancel: "Cancel",
+  passwordRequired: "Password is required.",
+  
+  forgotPassword: "Forgot password?",
+  forgotPasswordSubtitle:"Enter your email address and we'll send you a verification code.",
+  sendVerificationCode: "Send verification code",
+  sending: "Sending...",
+  verificationCodeSentTo: "Verification code sent to",
+  verificationCode: "Verification code",
+  verifyCode: "Verify code",
+  verifying: "Verifying...",
+  resendCode: "Resend code",
+  invalidOtp: "Enter the 6-digit verification code.",
+  otpCooldown:"Please wait before requesting another verification code.",
+  back: "Back",
+  backToLogin: "Back to login",
+
+  newPassword: "New password",
+  newPasswordPlaceholder: "Enter your new password",
+  confirmPassword: "Confirm password",
+  confirmPasswordPlaceholder: "Confirm your new password",
+  passwordRequirements: "Password requirements",
+  resetPassword: "Reset password",
+  resettingPassword: "Resetting password...",
+  resetPasswordSubtitle:"Create a new password for your account.",
 };
