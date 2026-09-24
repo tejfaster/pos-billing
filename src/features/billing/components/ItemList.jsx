@@ -5,6 +5,7 @@ export default function ItemList({
   items,
   onChangeQuantity,
   onSetQuantity,
+  onChangeUnit,
   onChangeRate,
   onRemove,
 }) {
@@ -42,43 +43,97 @@ export default function ItemList({
         bg-[var(--surface)]
       "
     >
-      <div className="min-w-[720px]">
-        <div
-          className="
-            grid
-            grid-cols-[36px_minmax(220px,1fr)_130px_120px_110px_40px]
-            items-center
-            gap-3
-            border-b
-            border-[var(--border)]
-            bg-[var(--muted)]/5
-            px-4
-            py-3
-            text-xs
-            font-medium
-            text-[var(--muted)]
-          "
-        >
-          <div>#</div>
-          <div>{t("item")}</div>
-          <div>{t("qty")}</div>
-          <div>{t("rate")}</div>
-          <div>{t("price")}</div>
-          <div></div>
-        </div>
+      <table
+        className="
+          w-full
+          table-fixed
+          border-collapse
+        "
+      >
+        <colgroup>
+          {/* # */}
+          <col style={{ width: "4%" }} />
 
-        {items.map((item, index) => (
-          <ItemRow
-            key={item.id}
-            item={item}
-            index={index}
-            onChangeQuantity={onChangeQuantity}
-            onSetQuantity={onSetQuantity}
-            onChangeRate={onChangeRate}
-            onRemove={onRemove}
-          />
-        ))}
-      </div>
+          {/* Product */}
+          <col style={{ width: "31%" }} />
+
+          {/* Quantity */}
+          <col style={{ width: "20%" }} />
+
+          {/* Unit */}
+          <col style={{ width: "15%" }} />
+
+          {/* Rate */}
+          <col style={{ width: "14%" }} />
+
+          {/* Final Price */}
+          <col style={{ width: "12%" }} />
+
+          {/* Remove */}
+          <col style={{ width: "4%" }} />
+        </colgroup>
+
+        <thead>
+          <tr
+            className="
+              border-b
+              border-[var(--border)]
+              bg-[var(--muted)]/5
+              text-xs
+              font-medium
+              text-[var(--muted)]
+            "
+          >
+            {/* Number */}
+            <th className="px-2 py-3 text-center">
+              #
+            </th>
+
+            {/* Product */}
+            <th className="px-3 py-3 text-left">
+              {t("item")}
+            </th>
+
+            {/* Quantity */}
+            <th className="px-2 py-3 text-center">
+              {t("qty")}
+            </th>
+
+            {/* Unit */}
+            <th className="px-2 py-3 text-left">
+              {t("unit")}
+            </th>
+
+            {/* Rate */}
+            <th className="px-2 py-3 text-left">
+              {t("rate")}
+            </th>
+
+            {/* Final Price */}
+            <th className="px-2 py-3 text-right">
+              {t("price") || "Price"}
+            </th>
+
+            {/* Remove */}
+            <th className="px-1 py-3" />
+          </tr>
+        </thead>
+
+        <tbody>
+          {items.map((item, index) => (
+            <ItemRow
+              key={item.product?.id ?? index}
+              item={item}
+              index={index}
+              onChangeQuantity={onChangeQuantity}
+              onSetQuantity={onSetQuantity}
+              onChangeUnit={onChangeUnit}
+              onChangeRate={onChangeRate}
+              onRemove={onRemove}
+            />
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

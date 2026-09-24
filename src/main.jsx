@@ -1,27 +1,29 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-
+import React from "react";
+import ReactDOM from "react-dom/client";
 import App from "./App";
-
-import { ThemeProvider } from "./context/ThemeContext";
-import { ProductProvider } from "./context/ProductContext";
-import { LanguageProvider } from "./context/LanguageContext";
-import { AuthProvider } from "./context/AuthContext";
-
 import "./index.css";
 
-createRoot(
-  document.getElementById("root")
-).render(
-  <StrictMode>
-    <LanguageProvider>
-      <ThemeProvider>
-        <ProductProvider>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </ProductProvider>
-      </ThemeProvider>
-    </LanguageProvider>
-  </StrictMode>
+import { ThemeProvider } from "./context/ThemeContext";
+import { LanguageProvider } from "./context/LanguageContext";
+import { AuthProvider } from "./context/AuthContext";
+import { ProductProvider } from "./context/ProductContext";
+import { UnitProvider } from "./context/UnitContext";
+import { CategoryProvider } from "./context/CategoryContext";
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <ThemeProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <ProductProvider>
+            <CategoryProvider>
+              <UnitProvider>
+                <App />
+              </UnitProvider>
+            </CategoryProvider>
+          </ProductProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </ThemeProvider>
+  </React.StrictMode>
 );

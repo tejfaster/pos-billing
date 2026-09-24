@@ -17,6 +17,7 @@ import AuthLayout from "./features/authentication/components/AuthLayout";
 import { useAuth } from "./context/AuthContext";
 import { useLanguage } from "./context/LanguageContext";
 
+
 export default function App() {
   const [currentPage, setCurrentPage] =
     useState("billing");

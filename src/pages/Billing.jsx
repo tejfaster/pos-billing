@@ -11,11 +11,12 @@ export default function Billing() {
   const {
     items,
     addItem,
-    changeQuantity,
+    updateQuantity,
     setQuantity,
-    changeRate,
+    updateUnit,
+    updateRate,
     removeItem,
-    clearItems,
+    clearBill,
     total,
   } = useBilling();
 
@@ -28,7 +29,10 @@ export default function Billing() {
       setIsPrinting(false);
     };
 
-    window.addEventListener("afterprint", handleAfterPrint);
+    window.addEventListener(
+      "afterprint",
+      handleAfterPrint
+    );
 
     return () => {
       window.removeEventListener(
@@ -44,7 +48,7 @@ export default function Billing() {
     );
 
     if (confirmed) {
-      clearItems();
+      clearBill();
     }
   };
 
@@ -78,6 +82,7 @@ export default function Billing() {
             lg:px-8
           "
         >
+          {/* Header */}
           <div
             className="
               mb-6
@@ -97,13 +102,14 @@ export default function Billing() {
                 {t("searchAndAddItems")}
               </p>
             </div>
-
           </div>
 
+          {/* Product Search */}
           <div className="shrink-0">
             <ItemSearch onAdd={addItem} />
           </div>
 
+          {/* Items */}
           <section
             className="
               mt-8
@@ -113,6 +119,7 @@ export default function Billing() {
               flex-col
             "
           >
+            {/* Section Header */}
             <div
               className="
                 mb-3
@@ -153,6 +160,7 @@ export default function Billing() {
               )}
             </div>
 
+            {/* Item List */}
             <div
               className="
                 min-h-0
@@ -164,13 +172,15 @@ export default function Billing() {
             >
               <ItemList
                 items={items}
-                onChangeQuantity={changeQuantity}
+                onChangeQuantity={updateQuantity}
                 onSetQuantity={setQuantity}
-                onChangeRate={changeRate}
+                onChangeUnit={updateUnit}
+                onChangeRate={updateRate}
                 onRemove={removeItem}
               />
             </div>
 
+            {/* Total */}
             {items.length > 0 && (
               <div
                 className="
@@ -190,14 +200,18 @@ export default function Billing() {
 
                 <span className="text-lg font-semibold">
                   {total !== null
-                    ? `₹${total.toLocaleString("en-IN", {
-                        maximumFractionDigits: 2,
-                      })}`
+                    ? `₹${total.toLocaleString(
+                        "en-IN",
+                        {
+                          maximumFractionDigits: 2,
+                        }
+                      )}`
                     : ""}
                 </span>
               </div>
             )}
 
+            {/* Print */}
             {items.length > 0 && (
               <div className="mt-6 shrink-0">
                 <button
@@ -230,6 +244,7 @@ export default function Billing() {
         </div>
       </div>
 
+      {/* Print-only bill */}
       <BillPrint items={items} />
     </>
   );

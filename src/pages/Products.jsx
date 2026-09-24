@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { useProducts } from "../context/ProductContext";
+import { useCategories } from "../context/CategoryContext";
 import ProductForm from "../features/products/components/ProductForm";
 import ProductList from "../features/products/components/ProductList";
 import { useLanguage } from "../context/LanguageContext";
@@ -13,13 +14,26 @@ export default function Products() {
     removeProduct,
   } = useProducts();
 
-  const { t } = useLanguage();
+  const {
+    categories,
+    addCategory,
+    updateCategory,
+    removeCategory,
+  } = useCategories();
+
+  const { t, language, getLocalizedName } = useLanguage();
 
   const [search, setSearch] = useState("");
   const [selectedProductId, setSelectedProductId] =
     useState(null);
-  const [isCreating, setIsCreating] =
-    useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+
+  const [categoryNameEn, setCategoryNameEn] = useState("");
+  const [categoryNameHi, setCategoryNameHi] = useState("");
+  const [editingCategoryId, setEditingCategoryId] =
+    useState(null);
+  const [categorySaving, setCategorySaving] = useState(false);
+  const [categoryError, setCategoryError] = useState("");
 
   const filteredProducts = useMemo(() => {
     const value = search.trim().toLowerCase();
@@ -29,26 +43,27 @@ export default function Products() {
     }
 
     return products.filter((product) => {
+      const nameEn = product.nameEn?.toLowerCase() || "";
+      const nameHi = product.nameHi?.toLowerCase() || "";
+      const brand = product.brand?.toLowerCase() || "";
+      const categoryNameEn =
+        product.categoryNameEn?.toLowerCase() || "";
+      const categoryNameHi =
+        product.categoryNameHi?.toLowerCase() || "";
+
       return (
-        product.name
-          .toLowerCase()
-          .includes(value) ||
-        product.code
-          ?.toLowerCase()
-          .includes(value) ||
-        product.brand
-          ?.toLowerCase()
-          .includes(value) ||
-        product.category
-          .toLowerCase()
-          .includes(value)
+        nameEn.includes(value) ||
+        nameHi.includes(value) ||
+        brand.includes(value) ||
+        categoryNameEn.includes(value) ||
+        categoryNameHi.includes(value)
       );
     });
   }, [products, search]);
 
   const selectedProduct = products.find(
     (product) =>
-      product.id === selectedProductId
+      String(product.id) === String(selectedProductId)
   );
 
   const handleAddProduct = () => {
@@ -61,29 +76,38 @@ export default function Products() {
     setIsCreating(false);
   };
 
-  const handleSaveProduct = (product) => {
-    if (product.id) {
-      updateProduct(product.id, product);
-    } else {
-      const newProduct = {
-        ...product,
-        id: Date.now(),
-      };
+  const handleSaveProduct = async (product) => {
+    try {
+      if (product.id) {
+        await updateProduct(product.id, product);
+      } else {
+        const createdProduct = await addProduct(product);
 
-      addProduct(newProduct);
-      setSelectedProductId(newProduct.id);
+        if (createdProduct?.id) {
+          setSelectedProductId(createdProduct.id);
+        }
+      }
+
+      setIsCreating(false);
+    } catch (error) {
+      console.error("Failed to save product:", error);
     }
-
-    setIsCreating(false);
   };
 
-  const handleDeleteProduct = () => {
+  const handleDeleteProduct = async () => {
     if (!selectedProduct) {
       return;
     }
 
+    const productName =
+      language === "hi"
+        ? selectedProduct.nameHi ||
+          selectedProduct.nameEn
+        : selectedProduct.nameEn ||
+          selectedProduct.nameHi;
+
     const confirmed = window.confirm(
-      `${t("deleteProductConfirmationStart")} "${selectedProduct.name}"? ${t(
+      `${t("deleteProductConfirmationStart")} "${productName}"? ${t(
         "deleteProductConfirmationEnd"
       )}`
     );
@@ -92,10 +116,14 @@ export default function Products() {
       return;
     }
 
-    removeProduct(selectedProduct.id);
+    try {
+      await removeProduct(selectedProduct.id);
 
-    setSelectedProductId(null);
-    setIsCreating(false);
+      setSelectedProductId(null);
+      setIsCreating(false);
+    } catch (error) {
+      console.error("Failed to delete product:", error);
+    }
   };
 
   const handleCancel = () => {
@@ -103,12 +131,92 @@ export default function Products() {
     setSelectedProductId(null);
   };
 
+  const resetCategoryForm = () => {
+    setCategoryNameEn("");
+    setCategoryNameHi("");
+    setEditingCategoryId(null);
+    setCategoryError("");
+  };
+
+  const handleEditCategory = (category) => {
+    setEditingCategoryId(category.id);
+    setCategoryNameEn(category.nameEn || "");
+    setCategoryNameHi(category.nameHi || "");
+    setCategoryError("");
+  };
+
+  const handleSaveCategory = async (event) => {
+    event.preventDefault();
+
+    const nameEn = categoryNameEn.trim();
+    const nameHi = categoryNameHi.trim();
+
+    if (!nameEn || !nameHi) {
+      setCategoryError(
+        "English Name and Hindi Name are required."
+      );
+      return;
+    }
+
+    setCategorySaving(true);
+    setCategoryError("");
+
+    try {
+      if (editingCategoryId) {
+        await updateCategory(editingCategoryId, {
+          nameEn,
+          nameHi,
+          status: "active",
+        });
+      } else {
+        await addCategory({
+          nameEn,
+          nameHi,
+          status: "active",
+        });
+      }
+
+      resetCategoryForm();
+    } catch (error) {
+      setCategoryError(
+        error.message || "Failed to save category."
+      );
+    } finally {
+      setCategorySaving(false);
+    }
+  };
+
+  const handleDeleteCategory = async (category) => {
+    const categoryName = getLocalizedName(category);
+
+    const confirmed = window.confirm(
+      `Delete "${categoryName}"?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await removeCategory(category.id);
+
+      if (editingCategoryId === category.id) {
+        resetCategoryForm();
+      }
+    } catch (error) {
+      setCategoryError(
+        error.message || "Failed to delete category."
+      );
+    }
+  };
+
   return (
     <div
       className="
-        h-full
+        flex
+        min-h-full
         w-full
-        overflow-hidden
+        flex-col
         bg-[var(--background)]
         text-[var(--foreground)]
       "
@@ -117,7 +225,6 @@ export default function Products() {
         className="
           mx-auto
           flex
-          h-full
           w-full
           max-w-7xl
           flex-col
@@ -128,6 +235,7 @@ export default function Products() {
           lg:px-8
         "
       >
+        {/* Header */}
         <header
           className="
             flex
@@ -149,16 +257,7 @@ export default function Products() {
             </p>
           </div>
 
-          <div
-            className="
-              flex
-              w-full
-              flex-col
-              gap-2
-              sm:flex-row
-              lg:w-auto
-            "
-          >
+          <div className="flex w-full gap-2 sm:w-auto">
             <input
               type="search"
               value={search}
@@ -177,7 +276,6 @@ export default function Products() {
                 text-sm
                 text-[var(--foreground)]
                 outline-none
-                transition
                 placeholder:text-[var(--muted)]
                 focus:border-[var(--foreground)]
                 focus:ring-2
@@ -191,14 +289,17 @@ export default function Products() {
               onClick={handleAddProduct}
               className="
                 h-10
+                shrink-0
                 rounded-lg
-                bg-[var(--foreground)]
+                border
+                border-[var(--border)]
+                bg-[var(--surface)]
                 px-4
                 text-sm
                 font-medium
-                text-[var(--background)]
+                text-[var(--foreground)]
                 transition
-                hover:opacity-90
+                hover:bg-[var(--background)]
                 active:scale-[0.98]
               "
             >
@@ -207,35 +308,29 @@ export default function Products() {
           </div>
         </header>
 
-        <main
-          className="
-            mt-6
-            min-h-0
-            flex-1
-          "
-        >
-          <div
-            className="
-              grid
-              h-full
-              min-h-0
-              gap-5
-              lg:grid-cols-[360px_minmax(0,1fr)]
-            "
-          >
-            <div className="min-h-0 overflow-y-auto">
-              <ProductList
-                products={filteredProducts}
-                selectedProductId={
-                  selectedProductId
-                }
-                onSelect={handleSelectProduct}
-              />
-            </div>
-
-            <div className="min-h-0 overflow-y-auto">
-              {isCreating || selectedProduct ? (
-                <div className="space-y-4">
+        {/* Main page content */}
+        <main className="mt-6">
+          <div className="space-y-6">
+            {/* Product Section */}
+            <section
+              className="
+                overflow-hidden
+                rounded-xl
+                border
+                border-[var(--border)]
+                bg-[var(--surface)]
+              "
+            >
+              {!isCreating && !selectedProduct ? (
+                <div className="h-[520px] min-h-0">
+                  <ProductList
+                    products={filteredProducts}
+                    selectedProductId={selectedProductId}
+                    onSelect={handleSelectProduct}
+                  />
+                </div>
+              ) : (
+                <div className="p-5">
                   <ProductForm
                     product={selectedProduct}
                     onSave={handleSaveProduct}
@@ -245,20 +340,21 @@ export default function Products() {
                   {selectedProduct && (
                     <div
                       className="
+                        mt-4
                         flex
                         items-center
                         justify-between
                         gap-4
-                        rounded-xl
+                        rounded-lg
                         border
                         border-[var(--danger)]/30
-                        bg-[var(--surface)]
+                        bg-[var(--background)]
                         px-5
                         py-4
                       "
                     >
                       <div>
-                        <div className="text-sm font-medium text-[var(--foreground)]">
+                        <div className="text-sm font-medium">
                           {t("deleteProduct")}
                         </div>
 
@@ -284,7 +380,6 @@ export default function Products() {
                           text-[var(--danger)]
                           transition
                           hover:bg-[var(--danger)]/10
-                          active:scale-[0.98]
                         "
                       >
                         {t("deleteProduct")}
@@ -292,36 +387,253 @@ export default function Products() {
                     </div>
                   )}
                 </div>
-              ) : (
-                <div
-                  className="
-                    flex
-                    min-h-[400px]
-                    items-center
-                    justify-center
-                    rounded-xl
-                    border
-                    border-dashed
-                    border-[var(--border)]
-                    bg-[var(--surface)]
-                    px-6
-                    text-center
-                  "
+              )}
+            </section>
+
+            {/* Category Management */}
+            <section
+              className="
+                rounded-xl
+                border
+                border-[var(--border)]
+                bg-[var(--surface)]
+              "
+            >
+              <div className="border-b border-[var(--border)] px-5 py-4">
+                <h2 className="text-lg font-semibold">
+                  Category Management
+                </h2>
+
+                <p className="mt-1 text-sm text-[var(--muted)]">
+                  Add, edit, or remove product categories.
+                </p>
+              </div>
+
+              <div className="grid gap-6 p-5 lg:grid-cols-[320px_minmax(0,1fr)]">
+                {/* Category Form */}
+                <form
+                  onSubmit={handleSaveCategory}
+                  className="space-y-4"
                 >
                   <div>
-                    <h2 className="text-lg font-semibold">
-                      {t("selectProduct")}
-                    </h2>
+                    <label className="mb-1.5 block text-sm font-medium">
+                      English Name
+                    </label>
 
-                    <p className="mt-2 max-w-sm text-sm text-[var(--muted)]">
-                      {t(
-                        "selectProductDescription"
-                      )}
-                    </p>
+                    <input
+                      type="text"
+                      value={categoryNameEn}
+                      onChange={(event) =>
+                        setCategoryNameEn(
+                          event.target.value
+                        )
+                      }
+                      placeholder="e.g. Cement"
+                      className="
+                        w-full
+                        rounded-lg
+                        border
+                        border-[var(--border)]
+                        bg-[var(--background)]
+                        px-3
+                        py-2.5
+                        text-sm
+                        outline-none
+                        placeholder:text-[var(--muted)]
+                        focus:border-[var(--foreground)]
+                        focus:ring-2
+                        focus:ring-[var(--foreground)]/10
+                      "
+                    />
                   </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium">
+                      Hindi Name
+                    </label>
+
+                    <input
+                      type="text"
+                      value={categoryNameHi}
+                      onChange={(event) =>
+                        setCategoryNameHi(
+                          event.target.value
+                        )
+                      }
+                      placeholder="जैसे: सीमेंट"
+                      className="
+                        w-full
+                        rounded-lg
+                        border
+                        border-[var(--border)]
+                        bg-[var(--background)]
+                        px-3
+                        py-2.5
+                        text-sm
+                        outline-none
+                        placeholder:text-[var(--muted)]
+                        focus:border-[var(--foreground)]
+                        focus:ring-2
+                        focus:ring-[var(--foreground)]/10
+                      "
+                    />
+                  </div>
+
+                  {categoryError && (
+                    <div
+                      className="
+                        rounded-lg
+                        border
+                        border-[var(--danger)]/30
+                        bg-[var(--background)]
+                        px-3
+                        py-2.5
+                        text-sm
+                        text-[var(--danger)]
+                      "
+                    >
+                      {categoryError}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={categorySaving}
+                      className="
+                        rounded-lg
+                        border
+                        border-[var(--border)]
+                        bg-[var(--foreground)]
+                        px-4
+                        py-2.5
+                        text-sm
+                        font-medium
+                        text-[var(--background)]
+                        transition
+                        hover:opacity-90
+                        disabled:cursor-not-allowed
+                        disabled:opacity-50
+                      "
+                    >
+                      {categorySaving
+                        ? "Saving..."
+                        : editingCategoryId
+                        ? "Update Category"
+                        : "Add Category"}
+                    </button>
+
+                    {editingCategoryId && (
+                      <button
+                        type="button"
+                        onClick={resetCategoryForm}
+                        className="
+                          rounded-lg
+                          border
+                          border-[var(--border)]
+                          bg-[var(--surface)]
+                          px-4
+                          py-2.5
+                          text-sm
+                          font-medium
+                          text-[var(--foreground)]
+                          transition
+                          hover:bg-[var(--background)]
+                        "
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </form>
+
+                {/* Category List */}
+                <div className="min-w-0 overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead>
+                      <tr className="border-b border-[var(--border)]">
+                        <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+                          #
+                        </th>
+
+                        <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+                          Name
+                        </th>
+
+                        <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+                          Hindi Name
+                        </th>
+
+                        <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {categories.map((category, index) => (
+                        <tr
+                          key={category.id}
+                          className="border-b border-[var(--border)] last:border-b-0"
+                        >
+                          <td className="px-3 py-3 text-sm text-[var(--muted)]">
+                            {index + 1}
+                          </td>
+
+                          <td className="px-3 py-3 text-sm font-medium">
+                            {getLocalizedName(category) || "—"}
+                          </td>
+
+                          <td className="px-3 py-3 text-sm text-[var(--muted)]">
+                            {category.nameHi || "—"}
+                          </td>
+
+                          <td className="px-3 py-3">
+                            <div className="flex justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleEditCategory(category)
+                                }
+                                className="
+                                  rounded-md
+                                  px-3
+                                  py-1.5
+                                  text-sm
+                                  font-medium
+                                  text-[var(--foreground)]
+                                  hover:bg-[var(--background)]
+                                "
+                              >
+                                Edit
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleDeleteCategory(category)
+                                }
+                                className="
+                                  rounded-md
+                                  px-3
+                                  py-1.5
+                                  text-sm
+                                  font-medium
+                                  text-[var(--danger)]
+                                  hover:bg-[var(--danger)]/10
+                                "
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              )}
-            </div>
+              </div>
+            </section>
           </div>
         </main>
       </div>

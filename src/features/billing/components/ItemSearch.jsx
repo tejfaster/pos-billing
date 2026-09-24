@@ -1,10 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-import { PRODUCTS } from "../../../data/products";
 import { useLanguage } from "../../../context/LanguageContext";
+import { useProducts } from "../../../context/ProductContext";
 
-export default function ItemSearch({ onAdd }) {
-  const { t } = useLanguage();
+export default function ItemSearch({
+  onAdd,
+  selectedItems = [],
+}) {
+  const { t, getLocalizedName } = useLanguage();
+
+  const { products, loading } = useProducts();
 
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -13,30 +23,102 @@ export default function ItemSearch({ onAdd }) {
   const wrapperRef = useRef(null);
   const inputRef = useRef(null);
   const listRef = useRef(null);
-
   const suppressFocusOpenRef = useRef(false);
 
+  /*
+   * Products already present in the bill.
+   *
+   * These products are hidden from the search results
+   * so the cashier does not accidentally add the same
+   * product again.
+   */
+  const selectedProductIds = useMemo(() => {
+    return new Set(
+      selectedItems
+        .map((item) => item?.product?.id)
+        .filter(
+          (id) =>
+            id !== null &&
+            id !== undefined
+        )
+        .map((id) => String(id))
+    );
+  }, [selectedItems]);
+
+  /*
+   * Search products.
+   */
   const results = useMemo(() => {
     const search = query.trim().toLowerCase();
 
+    const availableProducts = products.filter(
+      (product) =>
+        !selectedProductIds.has(
+          String(product.id)
+        )
+    );
+
+    /*
+     * Empty search:
+     * Show the first 40 available products.
+     */
     if (!search) {
-      return PRODUCTS.slice(0, 40);
+      return availableProducts.slice(0, 40);
     }
 
-    return PRODUCTS.filter((product) => {
-      return (
-        product.name.toLowerCase().includes(search) ||
-        product.code.toLowerCase().includes(search) ||
-        product.brand?.toLowerCase().includes(search) ||
-        product.category.toLowerCase().includes(search)
-      );
-    }).slice(0, 40);
-  }, [query]);
+    /*
+     * Search across:
+     * - English/transliteration name
+     * - Hindi name
+     * - Brand
+     * - English category
+     * - Hindi category
+     */
+    return availableProducts
+      .filter((product) => {
+        const nameEn =
+          product.nameEn?.toLowerCase() || "";
 
+        const nameHi =
+          product.nameHi?.toLowerCase() || "";
+
+        const brand =
+          product.brand?.toLowerCase() || "";
+
+        const categoryEn =
+          product.categoryNameEn?.toLowerCase() ||
+          "";
+
+        const categoryHi =
+          product.categoryNameHi?.toLowerCase() ||
+          "";
+
+        return (
+          nameEn.includes(search) ||
+          nameHi.includes(search) ||
+          brand.includes(search) ||
+          categoryEn.includes(search) ||
+          categoryHi.includes(search)
+        );
+      })
+      .slice(0, 40);
+  }, [
+    products,
+    query,
+    selectedProductIds,
+  ]);
+
+  /*
+   * Reset keyboard selection whenever
+   * the search results change.
+   */
   useEffect(() => {
     setActiveIndex(0);
-  }, [query, open]);
+  }, [query, open, selectedItems.length]);
 
+  /*
+   * Close dropdown when clicking outside.
+   */
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -60,6 +142,9 @@ export default function ItemSearch({ onAdd }) {
     };
   }, []);
 
+  /*
+   * Keep active keyboard item visible.
+   */
   useEffect(() => {
     if (!listRef.current) {
       return;
@@ -77,7 +162,14 @@ export default function ItemSearch({ onAdd }) {
     }
   }, [activeIndex]);
 
+  /*
+   * Highlight matching search text.
+   */
   const highlightText = (text) => {
+    if (!text) {
+      return "";
+    }
+
     const search = query.trim();
 
     if (!search) {
@@ -95,7 +187,8 @@ export default function ItemSearch({ onAdd }) {
 
     return parts.map((part, index) => {
       const isMatch =
-        part.toLowerCase() === search.toLowerCase();
+        part.toLowerCase() ===
+        search.toLowerCase();
 
       if (isMatch) {
         return (
@@ -113,10 +206,17 @@ export default function ItemSearch({ onAdd }) {
         );
       }
 
-      return <span key={index}>{part}</span>;
+      return (
+        <span key={index}>
+          {part}
+        </span>
+      );
     });
   };
 
+  /*
+   * Add selected product.
+   */
   const selectItem = (product) => {
     if (!product) {
       return;
@@ -128,6 +228,10 @@ export default function ItemSearch({ onAdd }) {
     setActiveIndex(0);
     setOpen(false);
 
+    /*
+     * Prevent the focus event from immediately
+     * reopening the dropdown after selection.
+     */
     suppressFocusOpenRef.current = true;
 
     requestAnimationFrame(() => {
@@ -135,7 +239,13 @@ export default function ItemSearch({ onAdd }) {
     });
   };
 
+  /*
+   * Keyboard navigation.
+   */
   const handleKeyDown = (event) => {
+    /*
+     * Open the dropdown with ArrowDown or Enter.
+     */
     if (
       !open &&
       (event.key === "ArrowDown" ||
@@ -146,6 +256,9 @@ export default function ItemSearch({ onAdd }) {
       return;
     }
 
+    /*
+     * No search results.
+     */
     if (results.length === 0) {
       if (event.key === "Escape") {
         event.preventDefault();
@@ -155,6 +268,9 @@ export default function ItemSearch({ onAdd }) {
       return;
     }
 
+    /*
+     * Down.
+     */
     if (event.key === "ArrowDown") {
       event.preventDefault();
 
@@ -168,6 +284,9 @@ export default function ItemSearch({ onAdd }) {
       return;
     }
 
+    /*
+     * Up.
+     */
     if (event.key === "ArrowUp") {
       event.preventDefault();
 
@@ -178,6 +297,9 @@ export default function ItemSearch({ onAdd }) {
       return;
     }
 
+    /*
+     * Select.
+     */
     if (event.key === "Enter") {
       event.preventDefault();
 
@@ -186,6 +308,9 @@ export default function ItemSearch({ onAdd }) {
       return;
     }
 
+    /*
+     * Close.
+     */
     if (event.key === "Escape") {
       event.preventDefault();
       setOpen(false);
@@ -197,6 +322,7 @@ export default function ItemSearch({ onAdd }) {
       ref={wrapperRef}
       className="relative w-full"
     >
+      {/* Search Input */}
       <input
         ref={inputRef}
         type="text"
@@ -206,7 +332,9 @@ export default function ItemSearch({ onAdd }) {
           setOpen(true);
         }}
         onFocus={() => {
-          if (suppressFocusOpenRef.current) {
+          if (
+            suppressFocusOpenRef.current
+          ) {
             suppressFocusOpenRef.current = false;
             return;
           }
@@ -244,6 +372,7 @@ export default function ItemSearch({ onAdd }) {
         "
       />
 
+      {/* Dropdown */}
       {open && (
         <div
           id="item-search-list"
@@ -263,7 +392,21 @@ export default function ItemSearch({ onAdd }) {
             shadow-lg
           "
         >
-          {results.length === 0 ? (
+          {/* Loading */}
+          {loading ? (
+            <div
+              className="
+                px-4
+                py-8
+                text-center
+                text-sm
+                text-[var(--muted)]
+              "
+            >
+              {t("loading")}
+            </div>
+          ) : results.length === 0 ? (
+            /* No Results */
             <div
               className="
                 px-4
@@ -282,73 +425,83 @@ export default function ItemSearch({ onAdd }) {
               </div>
             </div>
           ) : (
-            results.map((product, index) => (
-              <button
-                key={product.id}
-                id={`item-option-${product.id}`}
-                type="button"
-                role="option"
-                aria-selected={
-                  index === activeIndex
-                }
-                data-index={index}
-                onMouseEnter={() =>
-                  setActiveIndex(index)
-                }
-                onClick={() =>
-                  selectItem(product)
-                }
-                className={`
-                  block
-                  w-full
-                  border-b
-                  border-[var(--border)]
-                  px-4
-                  py-3.5
-                  text-left
-                  transition
-                  last:border-b-0
-                  ${
+            /* Results */
+            results.map((product, index) => {
+              const productName =
+                getLocalizedName(product);
+
+              const categoryName =
+                getLocalizedName({
+                  nameEn:
+                    product.categoryNameEn,
+                  nameHi:
+                    product.categoryNameHi,
+                });
+
+              return (
+                <button
+                  key={product.id}
+                  id={`item-option-${product.id}`}
+                  type="button"
+                  role="option"
+                  aria-selected={
                     index === activeIndex
-                      ? "bg-[var(--muted)]/10"
-                      : "hover:bg-[var(--muted)]/5"
                   }
-                `}
-              >
-                <div
-                  className="
-                    truncate
-                    text-sm
-                    font-medium
-                    text-[var(--foreground)]
-                  "
+                  data-index={index}
+                  onMouseEnter={() =>
+                    setActiveIndex(index)
+                  }
+                  onClick={() =>
+                    selectItem(product)
+                  }
+                  className={`
+                    block
+                    w-full
+                    border-b
+                    border-[var(--border)]
+                    px-4
+                    py-3.5
+                    text-left
+                    transition
+                    last:border-b-0
+                    ${
+                      index === activeIndex
+                        ? "bg-[var(--muted)]/10"
+                        : "hover:bg-[var(--muted)]/5"
+                    }
+                  `}
                 >
-                  {highlightText(product.name)}
-                </div>
+                  <div
+                    className="
+                      truncate
+                      text-sm
+                      font-medium
+                      text-[var(--foreground)]
+                    "
+                  >
+                    {highlightText(productName)}
+                  </div>
 
-                <div
-                  className="
-                    mt-1
-                    truncate
-                    text-xs
-                    text-[var(--muted)]
-                  "
-                >
-                  {highlightText(product.code)}
+                  <div
+                    className="
+                      mt-1
+                      truncate
+                      text-xs
+                      text-[var(--muted)]
+                    "
+                  >
+                    {categoryName}
 
-                  {" · "}
-
-                  {product.category}
-
-                  {product.brand && (
-                    <>
-                      {" · "}
-                      {product.brand}
-                    </>
-                  )}
-                </div>
-              </button>
-            ))
+                    {product.brand && (
+                      <>
+                        {" · "}
+                        {product.brand}
+                      </>
+                    )}
+                  </div>
+                </button>
+              );
+            })
           )}
         </div>
       )}
