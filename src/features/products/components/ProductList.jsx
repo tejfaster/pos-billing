@@ -1,122 +1,127 @@
 import { useLanguage } from "../../../context/LanguageContext";
 
 export default function ProductList({
-  products,
-  selectedProductId,
+  products = [],
+  selectedProductId = null,
   onSelect,
 }) {
-  const { t } = useLanguage();
+  const { getLocalizedName } = useLanguage();
 
   if (products.length === 0) {
     return (
       <div
         className="
-          rounded-xl
-          border
-          border-dashed
-          border-[var(--border)]
+          flex
+          h-full
+          items-center
+          justify-center
           bg-[var(--surface)]
-          px-5
-          py-12
+          px-6
           text-center
         "
       >
-        <p className="text-sm font-medium text-[var(--foreground)]">
-          {t("noProductsFound")}
-        </p>
-
-        <p className="mt-1 text-xs text-[var(--muted)]">
-          {t("tryDifferentSearch")}
+        <p className="text-sm text-[var(--muted)]">
+          No products found.
         </p>
       </div>
     );
   }
 
   return (
-    <div
-      className="
-        overflow-hidden
-        rounded-xl
-        border
-        border-[var(--border)]
-        bg-[var(--surface)]
-      "
-    >
-      <div
-        className="
-          border-b
-          border-[var(--border)]
-          bg-[var(--muted)]/5
-          px-4
-          py-3
-          text-xs
-          font-medium
-          text-[var(--muted)]
-        "
-      >
-        {t("products")}
-      </div>
+    <div className="h-full overflow-y-auto">
+      <table className="w-full min-w-[900px] border-collapse">
+        <thead className="sticky top-0 z-10 bg-[var(--surface)]">
+          <tr className="border-b border-[var(--border)]">
+            <th className="w-14 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+              #
+            </th>
 
-      <div className="max-h-[calc(100vh-260px)] overflow-y-auto">
-        {products.map((product) => {
-          const isSelected =
-            product.id === selectedProductId;
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+              Product
+            </th>
 
-          return (
-            <button
-              key={product.id}
-              type="button"
-              onClick={() => onSelect(product.id)}
-              className={`
-                block
-                w-full
-                border-b
-                border-[var(--border)]
-                px-4
-                py-4
-                text-left
-                transition
-                last:border-b-0
-                ${
-                  isSelected
-                    ? "bg-[var(--muted)]/10"
-                    : "hover:bg-[var(--muted)]/5"
-                }
-              `}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-medium text-[var(--foreground)]">
-                    {product.name}
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+              Hindi Name
+            </th>
+
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+              Category
+            </th>
+
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+              Brand
+            </th>
+
+            <th className="w-28 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+              Status
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {products.map((product, index) => {
+            const isSelected =
+              String(product.id) ===
+              String(selectedProductId);
+
+            return (
+              <tr
+                key={product.id}
+                onClick={() => onSelect?.(product.id)}
+                className={`
+                  cursor-pointer
+                  border-b
+                  border-[var(--border)]
+                  transition
+                  last:border-b-0
+                  ${
+                    isSelected
+                      ? "bg-[var(--background)]"
+                      : "hover:bg-[var(--background)]"
+                  }
+                `}
+              >
+                <td className="px-4 py-3 text-sm text-[var(--muted)]">
+                  {index + 1}
+                </td>
+
+                <td className="px-4 py-3">
+                  <div className="text-sm font-medium text-[var(--foreground)]">
+                    {getLocalizedName(product) || "—"}
                   </div>
 
-                  <div className="mt-1 truncate text-xs text-[var(--muted)]">
-                    {product.brand
-                      ? `${product.brand} · `
-                      : ""}
-                    {product.code || "No SKU"}
-                  </div>
-                </div>
+                  {product.nameEn &&
+                    product.nameHi && (
+                      <div className="mt-1 text-xs text-[var(--muted)]">
+                        {product.nameEn}
+                      </div>
+                    )}
+                </td>
 
-                <span
-                  className="
-                    shrink-0
-                    rounded-full
-                    bg-[var(--accent-soft)]
-                    px-2
-                    py-1
-                    text-[11px]
-                    font-medium
-                    text-[var(--foreground)]
-                  "
-                >
-                  {product.category}
-                </span>
-              </div>
-            </button>
-          );
-        })}
-      </div>
+                <td className="px-4 py-3 text-sm text-[var(--muted)]">
+                  {product.nameHi || "—"}
+                </td>
+
+                <td className="px-4 py-3 text-sm text-[var(--foreground)]">
+                  {product.categoryNameEn ||
+                    product.categoryNameHi ||
+                    "—"}
+                </td>
+
+                <td className="px-4 py-3 text-sm text-[var(--muted)]">
+                  {product.brand || "—"}
+                </td>
+
+                <td className="px-4 py-3 text-center">
+                  <span className="text-xs text-[var(--muted)]">
+                    {product.status || "active"}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -46,8 +46,10 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+
   background: var(--background);
   color: var(--foreground);
+
   font-family:
     Inter,
     ui-sans-serif,
@@ -56,6 +58,7 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -77,7 +80,7 @@ select {
   color: var(--foreground);
 }
 
-*::selection {
+::selection {
   background: var(--foreground);
   color: var(--background);
 }
@@ -114,29 +117,41 @@ input[type="password"]::-ms-clear {
   body {
     width: 100%;
     min-width: 0;
+
     margin: 0;
     padding: 0;
+
     background: #ffffff !important;
     color: #000000 !important;
   }
 
-  /* Hide application UI */
+  /* ================================
+     HIDE APPLICATION UI
+  ================================ */
+
   .no-print {
     display: none !important;
   }
 
-  /* Show printable bill */
+  /* ================================
+     SHOW PRINTABLE BILL
+  ================================ */
+
   .print-only {
     display: block !important;
   }
 
   .print-page {
     display: block !important;
+
     width: 100%;
+    margin: 0;
+    padding: 0;
   }
 
   .print-container {
     width: 100%;
+
     margin: 0;
     padding: 0;
   }
@@ -148,35 +163,50 @@ input[type="password"]::-ms-clear {
   .print-header {
     display: flex;
     align-items: center;
+
     width: 100%;
-    margin-bottom: 6px;
-    gap: 35px;
+
+    margin: 0 0 7px 0;
+    padding: 0;
+
+    gap: 32px;
+
     font-size: 11px;
+    line-height: 1.2;
     font-weight: 500;
+
     color: #000000 !important;
     background: #ffffff !important;
   }
 
   .print-date {
     flex-shrink: 0;
+
     white-space: nowrap;
+
     color: #000000 !important;
   }
 
   .print-customer {
     display: flex;
     align-items: center;
+
     flex: 1;
     min-width: 0;
+
     white-space: nowrap;
+
     color: #000000 !important;
   }
 
   .customer-line {
     flex: 1;
+
     min-width: 120px;
-    height: 16px;
+    height: 15px;
+
     margin-left: 4px;
+
     border-bottom: 1px solid #000000;
   }
 
@@ -185,10 +215,17 @@ input[type="password"]::-ms-clear {
   ================================ */
 
   .print-table {
-    width: calc(100% - 1px);
+    width: 100%;
+
+    margin: 0;
+    padding: 0;
+
     border-collapse: collapse;
     table-layout: fixed;
+
     font-size: 11px;
+    line-height: 1.2;
+
     color: #000000 !important;
     background: #ffffff !important;
   }
@@ -196,18 +233,25 @@ input[type="password"]::-ms-clear {
   .print-table th,
   .print-table td {
     border: 1px solid #000000 !important;
-    padding: 4px 6px;
+
+    padding: 5px 6px;
+
     color: #000000 !important;
     background: #ffffff !important;
   }
 
   .print-table th {
+    height: 27px;
+
     font-weight: 700;
     text-align: center;
+
+    vertical-align: middle;
   }
 
   .print-table td {
-    height: 28px;
+    height: 30px;
+
     vertical-align: middle;
   }
 
@@ -222,27 +266,54 @@ input[type="password"]::-ms-clear {
 
   /* ================================
      TABLE COLUMN WIDTHS
+
+     #        6%
+     Product  34%
+     Qty      11%
+     Unit     13%
+     Rate     17%
+     Price    19%
+
+     Total = 100%
   ================================ */
 
   .serial-column {
-    width: 7%;
+    width: 6%;
+    text-align: center;
   }
 
   .item-column {
-    width: 51%;
+    width: 34%;
     text-align: left;
   }
 
   .quantity-column {
-    width: 10%;
+    width: 11%;
+    text-align: center;
+  }
+
+  .unit-column {
+    width: 13%;
+    text-align: center;
   }
 
   .rate-column {
-    width: 16%;
+    width: 17%;
+    text-align: right;
   }
 
   .price-column {
-    width: 16%;
+    width: 19%;
+    text-align: right;
+  }
+
+  /* ================================
+     PRODUCT / BRAND
+  ================================ */
+
+  .print-brand {
+    font-size: 9px;
+    font-weight: 400;
   }
 
   /* ================================
@@ -250,7 +321,11 @@ input[type="password"]::-ms-clear {
   ================================ */
 
   .text-center {
-    text-align: center;
+    text-align: center !important;
+  }
+
+  .text-right {
+    text-align: right !important;
   }
 
   /* ================================
@@ -261,21 +336,29 @@ input[type="password"]::-ms-clear {
     display: flex !important;
     align-items: center;
     justify-content: flex-end;
+
     width: 100%;
-    gap: 10px;
+
     margin-top: 8px;
-    padding-right: 1px;
+    padding: 0;
+
+    gap: 10px;
+
     font-size: 12px;
+    line-height: 1.2;
     font-weight: 700;
+
     color: #000000 !important;
     background: #ffffff !important;
   }
 
   .print-total-value {
     display: inline-block !important;
+
     min-width: 120px;
-    margin-left: 0;
+
     text-align: right;
+
     color: #000000 !important;
     background: #ffffff !important;
   }

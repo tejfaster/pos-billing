@@ -189,4 +189,9 @@ export const hi = {
   resettingPassword: "पासवर्ड रीसेट किया जा रहा है...",
   resetPasswordSubtitle:"अपने खाते के लिए नया पासवर्ड बनाएं।",
   
+  productNameEnglish: "अंग्रेज़ी नाम",
+  productNameHindi: "हिंदी नाम",
+  productNameEnglishPlaceholder: "जैसे: हथौड़ी",
+  productNameHindiPlaceholder: "जैसे: हथौड़ी",
+  saving: "सहेजा जा रहा है...",
 };

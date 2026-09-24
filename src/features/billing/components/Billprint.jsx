@@ -1,13 +1,68 @@
 import { useLanguage } from "../../../context/LanguageContext";
+import { useUnits } from "../../../context/UnitContext";
 
 export default function BillPrint({ items }) {
-  const { t } = useLanguage();
+  const { t, getLocalizedName } = useLanguage();
+  const { units } = useUnits();
 
   if (!items || items.length === 0) {
     return null;
   }
 
   const today = new Date().toLocaleDateString("en-IN");
+
+  const getSelectedUnit = (unitId) => {
+    if (!unitId) {
+      return null;
+    }
+
+    return (
+      units.find(
+        (unit) => String(unit.id) === String(unitId)
+      ) || null
+    );
+  };
+
+  const getProductName = (product) => {
+    if (!product) {
+      return "";
+    }
+
+    const localizedName = getLocalizedName(product);
+
+    return (
+      localizedName ||
+      product.nameEn ||
+      product.nameHi ||
+      product.name_en ||
+      product.name_hi ||
+      ""
+    );
+  };
+
+  const getUnitName = (unit) => {
+    if (!unit) {
+      return "";
+    }
+
+    const localizedName = getLocalizedName(unit);
+
+    const unitName =
+      localizedName ||
+      unit.nameEn ||
+      unit.nameHi ||
+      unit.name_en ||
+      unit.name_hi ||
+      "";
+
+    if (!unitName) {
+      return "";
+    }
+
+    return unit.shortName
+      ? `${unitName} (${unit.shortName})`
+      : unitName;
+  };
 
   const allRatesAvailable = items.every(
     (item) =>
@@ -29,6 +84,11 @@ export default function BillPrint({ items }) {
   return (
     <div className="print-only print-page">
       <div className="print-container">
+
+        {/* ================================
+            HEADER
+        ================================= */}
+
         <div className="print-header">
           <div className="print-date">
             {t("date")}: {today}
@@ -36,9 +96,14 @@ export default function BillPrint({ items }) {
 
           <div className="print-customer">
             <span>{t("customerForm")}:</span>
+
             <span className="customer-line"></span>
           </div>
         </div>
+
+        {/* ================================
+            ITEMS TABLE
+        ================================= */}
 
         <table className="print-table">
           <thead>
@@ -55,6 +120,10 @@ export default function BillPrint({ items }) {
                 {t("qty")}
               </th>
 
+              <th className="unit-column">
+                {t("unit")}
+              </th>
+
               <th className="rate-column">
                 {t("rate")}
               </th>
@@ -67,48 +136,111 @@ export default function BillPrint({ items }) {
 
           <tbody>
             {items.map((item, index) => {
-              const qty = Number(item.qty) || 0;
+              /*
+               * Billing item structure:
+               *
+               * {
+               *   product,
+               *   qty,
+               *   unit,
+               *   rate
+               * }
+               */
+
+              const product = item?.product;
+
+              const productName =
+                getProductName(product);
+
+              const selectedUnit =
+                getSelectedUnit(item?.unit);
+
+              const unitName =
+                getUnitName(selectedUnit) || "-";
+
+              const qty =
+                item?.qty !== undefined &&
+                item?.qty !== null
+                  ? item.qty
+                  : "";
 
               const hasRate =
-                item.rate !== "" &&
-                item.rate !== null &&
-                item.rate !== undefined &&
+                item?.rate !== "" &&
+                item?.rate !== null &&
+                item?.rate !== undefined &&
                 !Number.isNaN(Number(item.rate));
 
               const rate = hasRate
                 ? Number(item.rate)
                 : null;
 
+              const numericQty =
+                Number(item?.qty);
+
               const price =
-                rate !== null ? qty * rate : null;
+                rate !== null &&
+                Number.isFinite(numericQty)
+                  ? numericQty * rate
+                  : null;
 
               return (
-                <tr key={item.id}>
+                <tr
+                  key={
+                    product?.id ??
+                    item?.id ??
+                    index
+                  }
+                >
+                  {/* Serial Number */}
                   <td className="text-center">
                     {index + 1}
                   </td>
 
-                  <td>{item.name}</td>
+                  {/* Product */}
+                  <td>
+                    {productName}
 
-                  <td className="text-center">
-                    {item.qty}
+                    {product?.brand && (
+                      <span className="print-brand">
+                        {" "}
+                        — {product.brand}
+                      </span>
+                    )}
                   </td>
 
+                  {/* Quantity */}
                   <td className="text-center">
+                    {qty}
+                  </td>
+
+                  {/* Unit */}
+                  <td className="text-center">
+                    {unitName}
+                  </td>
+
+                  {/* Rate */}
+                  <td className="text-right">
                     {rate !== null
-                      ? `₹${rate.toLocaleString("en-IN", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}`
+                      ? `₹${rate.toLocaleString(
+                          "en-IN",
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
+                        )}`
                       : ""}
                   </td>
 
-                  <td className="text-center">
+                  {/* Final Price */}
+                  <td className="text-right">
                     {price !== null
-                      ? `₹${price.toLocaleString("en-IN", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}`
+                      ? `₹${price.toLocaleString(
+                          "en-IN",
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
+                        )}`
                       : ""}
                   </td>
                 </tr>
@@ -117,18 +249,28 @@ export default function BillPrint({ items }) {
           </tbody>
         </table>
 
+        {/* ================================
+            TOTAL
+        ================================= */}
+
         <div className="print-total">
-          <span>{t("total")}:</span>
+          <span>
+            {t("total")}:
+          </span>
 
           <span className="print-total-value">
             {printTotal !== null
-              ? `₹${printTotal.toLocaleString("en-IN", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}`
+              ? `₹${printTotal.toLocaleString(
+                  "en-IN",
+                  {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }
+                )}`
               : ""}
           </span>
         </div>
+
       </div>
     </div>
   );

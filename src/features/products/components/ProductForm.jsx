@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 
-import { CATEGORIES } from "../../../data/categories";
-import ProductUnitList from "./ProductUnitList";
+import { useCategories } from "../../../context/CategoryContext";
 import { useLanguage } from "../../../context/LanguageContext";
 
 const EMPTY_FORM = {
-  name: "",
-  code: "",
+  nameEn: "",
+  nameHi: "",
   brand: "",
-  category: "",
-  unitIds: [],
+  categoryId: "",
 };
 
 export default function ProductForm({
@@ -17,25 +15,26 @@ export default function ProductForm({
   onSave,
   onCancel,
 }) {
-  const { t } = useLanguage();
+  const { categories } = useCategories();
+  const { t, getLocalizedName } = useLanguage();
 
   const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (product) {
       setForm({
-        name: product.name || "",
-        code: product.code || "",
+        nameEn: product.nameEn || "",
+        nameHi: product.nameHi || "",
         brand: product.brand || "",
-        category: product.category || "",
-        unitIds: product.unitIds || [],
+        categoryId: product.categoryId
+          ? String(product.categoryId)
+          : "",
       });
     } else {
       setForm(EMPTY_FORM);
     }
   }, [product]);
-
-  const isEditing = Boolean(product);
 
   const handleChange = (field, value) => {
     setForm((current) => ({
@@ -44,49 +43,35 @@ export default function ProductForm({
     }));
   };
 
-  const handleAddUnit = (unitId) => {
-    setForm((current) => {
-      if (current.unitIds.includes(unitId)) {
-        return current;
-      }
-
-      return {
-        ...current,
-        unitIds: [...current.unitIds, unitId],
-      };
-    });
-  };
-
-  const handleRemoveUnit = (unitId) => {
-    setForm((current) => ({
-      ...current,
-      unitIds: current.unitIds.filter(
-        (id) => id !== unitId
-      ),
-    }));
-  };
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const name = form.name.trim();
-    const code = form.code.trim();
-    const brand = form.brand.trim();
-
-    if (!name || !form.category) {
+    if (!form.nameEn.trim()) {
       return;
     }
 
-    const savedProduct = {
-      ...(product || {}),
-      name,
-      code,
-      brand,
-      category: form.category,
-      unitIds: form.unitIds,
-    };
+    if (!form.nameHi.trim()) {
+      return;
+    }
 
-    onSave(savedProduct);
+    if (!form.categoryId) {
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      await onSave({
+        ...(product || {}),
+        nameEn: form.nameEn.trim(),
+        nameHi: form.nameHi.trim(),
+        brand: form.brand.trim(),
+        categoryId: form.categoryId,
+        status: product?.status || "active",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -99,280 +84,229 @@ export default function ProductForm({
         bg-[var(--surface)]
       "
     >
+      {/* Header */}
+      <div className="border-b border-[var(--border)] px-5 py-4">
+        <h2 className="text-lg font-semibold">
+          {product ? "Edit Product" : "Add Product"}
+        </h2>
+
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          {product
+            ? "Update product information."
+            : "Add a new product to your catalogue."}
+        </p>
+      </div>
+
+      {/* Fields */}
+      <div className="grid gap-5 p-5 md:grid-cols-2">
+        <div>
+          <label className="mb-1.5 block text-sm font-medium">
+            {t("productNameEnglish")}
+          </label>
+
+          <input
+            type="text"
+            value={form.nameEn}
+            onChange={(event) =>
+              handleChange(
+                "nameEn",
+                event.target.value
+              )
+            }
+            placeholder={t(
+              "productNameEnglishPlaceholder"
+            )}
+            className="
+              w-full
+              rounded-lg
+              border
+              border-[var(--border)]
+              bg-[var(--background)]
+              px-3
+              py-2.5
+              text-sm
+              text-[var(--foreground)]
+              outline-none
+              placeholder:text-[var(--muted)]
+              focus:border-[var(--foreground)]
+              focus:ring-2
+              focus:ring-[var(--foreground)]/10
+            "
+          />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium">
+            {t("productNameHindi")}
+          </label>
+
+          <input
+            type="text"
+            value={form.nameHi}
+            onChange={(event) =>
+              handleChange(
+                "nameHi",
+                event.target.value
+              )
+            }
+            placeholder={t(
+              "productNameHindiPlaceholder"
+            )}
+            className="
+              w-full
+              rounded-lg
+              border
+              border-[var(--border)]
+              bg-[var(--background)]
+              px-3
+              py-2.5
+              text-sm
+              text-[var(--foreground)]
+              outline-none
+              placeholder:text-[var(--muted)]
+              focus:border-[var(--foreground)]
+              focus:ring-2
+              focus:ring-[var(--foreground)]/10
+            "
+          />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium">
+            Brand
+          </label>
+
+          <input
+            type="text"
+            value={form.brand}
+            onChange={(event) =>
+              handleChange(
+                "brand",
+                event.target.value
+              )
+            }
+            placeholder="e.g. Tata"
+            className="
+              w-full
+              rounded-lg
+              border
+              border-[var(--border)]
+              bg-[var(--background)]
+              px-3
+              py-2.5
+              text-sm
+              text-[var(--foreground)]
+              outline-none
+              placeholder:text-[var(--muted)]
+              focus:border-[var(--foreground)]
+              focus:ring-2
+              focus:ring-[var(--foreground)]/10
+            "
+          />
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium">
+            Category
+          </label>
+
+          <select
+            value={form.categoryId}
+            onChange={(event) =>
+              handleChange(
+                "categoryId",
+                event.target.value
+              )
+            }
+            className="
+              w-full
+              rounded-lg
+              border
+              border-[var(--border)]
+              bg-[var(--background)]
+              px-3
+              py-2.5
+              text-sm
+              text-[var(--foreground)]
+              outline-none
+              focus:border-[var(--foreground)]
+              focus:ring-2
+              focus:ring-[var(--foreground)]/10
+            "
+          >
+            <option value="">
+              Select category
+            </option>
+
+            {categories.map((category) => (
+              <option
+                key={category.id}
+                value={category.id}
+              >
+                {getLocalizedName(category)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Actions */}
       <div
         className="
           flex
-          items-center
-          justify-between
-          gap-4
-          border-b
+          justify-end
+          gap-2
+          border-t
           border-[var(--border)]
           px-5
           py-4
         "
       >
-        <div>
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">
-            {isEditing
-              ? t("editProduct")
-              : t("addNewProduct")}
-          </h2>
-
-          <p className="mt-1 text-sm text-[var(--muted)]">
-            {t("addProductInformation")}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {onCancel && (
-            <button
-              type="button"
-              onClick={onCancel}
-              className="
-                rounded-lg
-                border
-                border-[var(--border)]
-                bg-[var(--surface)]
-                px-4
-                py-2
-                text-sm
-                font-medium
-                text-[var(--foreground)]
-                transition
-                hover:bg-[var(--muted)]/10
-              "
-            >
-              {t("cancel")}
-            </button>
-          )}
-
-          <button
-            type="submit"
-            className="
-              rounded-lg
-              bg-[var(--foreground)]
-              px-4
-              py-2
-              text-sm
-              font-medium
-              text-[var(--background)]
-              transition
-              hover:opacity-90
-              active:scale-[0.98]
-            "
-          >
-            {isEditing
-              ? t("updateProduct")
-              : t("saveProduct")}
-          </button>
-        </div>
-      </div>
-
-      <div className="space-y-6 p-5">
-        <section>
-          <h3 className="text-base font-semibold text-[var(--foreground)]">
-            {t("basicInformation")}
-          </h3>
-
-          <div
-            className="
-              mt-4
-              grid
-              gap-4
-              sm:grid-cols-2
-            "
-          >
-            <div className="sm:col-span-2">
-              <label
-                htmlFor="product-name"
-                className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
-              >
-                {t("productName")}
-
-                <span className="ml-1 text-[var(--danger)]">
-                  *
-                </span>
-              </label>
-
-              <input
-                id="product-name"
-                type="text"
-                value={form.name}
-                onChange={(event) =>
-                  handleChange(
-                    "name",
-                    event.target.value
-                  )
-                }
-                placeholder={t("productNamePlaceholder")}
-                required
-                className="
-                  h-11
-                  w-full
-                  rounded-lg
-                  border
-                  border-[var(--border)]
-                  bg-[var(--surface)]
-                  px-3
-                  text-sm
-                  text-[var(--foreground)]
-                  outline-none
-                  transition
-                  placeholder:text-[var(--muted)]
-                  focus:border-[var(--foreground)]
-                  focus:ring-2
-                  focus:ring-[var(--foreground)]/10
-                "
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="product-brand"
-                className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
-              >
-                {t("brand")}
-              </label>
-
-              <input
-                id="product-brand"
-                type="text"
-                value={form.brand}
-                onChange={(event) =>
-                  handleChange(
-                    "brand",
-                    event.target.value
-                  )
-                }
-                placeholder={t("brandPlaceholder")}
-                className="
-                  h-11
-                  w-full
-                  rounded-lg
-                  border
-                  border-[var(--border)]
-                  bg-[var(--surface)]
-                  px-3
-                  text-sm
-                  text-[var(--foreground)]
-                  outline-none
-                  transition
-                  placeholder:text-[var(--muted)]
-                  focus:border-[var(--foreground)]
-                  focus:ring-2
-                  focus:ring-[var(--foreground)]/10
-                "
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="product-code"
-                className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
-              >
-                {t("productCode")}
-              </label>
-
-              <input
-                id="product-code"
-                type="text"
-                value={form.code}
-                onChange={(event) =>
-                  handleChange(
-                    "code",
-                    event.target.value
-                  )
-                }
-                placeholder={t("productCodePlaceholder")}
-                className="
-                  h-11
-                  w-full
-                  rounded-lg
-                  border
-                  border-[var(--border)]
-                  bg-[var(--surface)]
-                  px-3
-                  text-sm
-                  text-[var(--foreground)]
-                  outline-none
-                  transition
-                  placeholder:text-[var(--muted)]
-                  focus:border-[var(--foreground)]
-                  focus:ring-2
-                  focus:ring-[var(--foreground)]/10
-                "
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label
-                htmlFor="product-category"
-                className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
-              >
-                {t("category")}
-
-                <span className="ml-1 text-[var(--danger)]">
-                  *
-                </span>
-              </label>
-
-              <select
-                id="product-category"
-                value={form.category}
-                onChange={(event) =>
-                  handleChange(
-                    "category",
-                    event.target.value
-                  )
-                }
-                required
-                className="
-                  h-11
-                  w-full
-                  rounded-lg
-                  border
-                  border-[var(--border)]
-                  bg-[var(--surface)]
-                  px-3
-                  text-sm
-                  text-[var(--foreground)]
-                  outline-none
-                  transition
-                  focus:border-[var(--foreground)]
-                  focus:ring-2
-                  focus:ring-[var(--foreground)]/10
-                "
-              >
-                <option value="">
-                  {t("selectCategory")}
-                </option>
-
-                {CATEGORIES.map((category) => (
-                  <option
-                    key={category.id}
-                    value={category.name}
-                  >
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </section>
-
-        <section
+        <button
+          type="button"
+          onClick={onCancel}
           className="
-            border-t
+            rounded-lg
+            border
             border-[var(--border)]
-            pt-6
+            bg-[var(--surface)]
+            px-4
+            py-2.5
+            text-sm
+            font-medium
+            text-[var(--foreground)]
+            transition
+            hover:bg-[var(--background)]
           "
         >
-          <ProductUnitList
-            selectedUnitIds={form.unitIds}
-            onAddUnit={handleAddUnit}
-            onRemoveUnit={handleRemoveUnit}
-          />
-        </section>
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          disabled={saving}
+          className="
+            rounded-lg
+            border
+            border-[var(--foreground)]
+            bg-[var(--foreground)]
+            px-4
+            py-2.5
+            text-sm
+            font-medium
+            text-[var(--background)]
+            transition
+            hover:opacity-90
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+          "
+        >
+          {saving
+            ? t("saving")
+            : product
+            ? "Update Product"
+            : "Add Product"}
+        </button>
       </div>
     </form>
   );

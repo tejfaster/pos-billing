@@ -194,4 +194,10 @@ export const en = {
   resetPassword: "Reset password",
   resettingPassword: "Resetting password...",
   resetPasswordSubtitle:"Create a new password for your account.",
+
+  productNameEnglish: "English Name",
+  productNameHindi: "Hindi Name",
+  productNameEnglishPlaceholder: "e.g. Hathodi",
+  productNameHindiPlaceholder: "e.g. हथौड़ी",
+  saving: "Saving...",
 };

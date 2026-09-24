@@ -20,7 +20,10 @@ export function LanguageProvider({ children }) {
     const savedLanguage =
       localStorage.getItem("pos-language");
 
-    if (savedLanguage === "en" || savedLanguage === "hi") {
+    if (
+      savedLanguage === "en" ||
+      savedLanguage === "hi"
+    ) {
       return savedLanguage;
     }
 
@@ -33,6 +36,7 @@ export function LanguageProvider({ children }) {
     }
 
     setLanguage(newLanguage);
+
     localStorage.setItem(
       "pos-language",
       newLanguage
@@ -47,11 +51,32 @@ export function LanguageProvider({ children }) {
     );
   };
 
+  const getLocalizedName = (item) => {
+    if (!item) {
+      return "";
+    }
+
+    if (language === "hi") {
+      return (
+        item.nameHi ||
+        item.nameEn ||
+        ""
+      );
+    }
+
+    return (
+      item.nameEn ||
+      item.nameHi ||
+      ""
+    );
+  };
+
   const value = useMemo(
     () => ({
       language,
       setLanguage: changeLanguage,
       t,
+      getLocalizedName,
     }),
     [language]
   );
