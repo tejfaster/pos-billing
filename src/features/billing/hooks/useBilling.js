@@ -3,31 +3,29 @@ import { useCallback, useMemo, useState } from "react";
 export default function useBilling() {
   const [items, setItems] = useState([]);
 
-  /*
-   * Add item
-   */
   const addItem = useCallback((product) => {
-    setItems((currentItems) => {
-      const existingItem = currentItems.find(
-        (item) => item.id === product.id
+    setItems((prev) => {
+      const existing = prev.find(
+        (item) => item.product?.id === product.id
       );
 
-      if (existingItem) {
-        return currentItems.map((item) =>
-          item.id === product.id
+      if (existing) {
+        return prev.map((item) =>
+          item.product?.id === product.id
             ? {
                 ...item,
-                qty: item.qty + 1,
+                qty: Number(item.qty || 0) + 1,
               }
             : item
         );
       }
 
       return [
-        ...currentItems,
+        ...prev,
         {
-          ...product,
+          product,
           qty: 1,
+          unit: "",
           rate: "",
         },
       ];
@@ -35,106 +33,163 @@ export default function useBilling() {
   }, []);
 
   /*
-   * Change quantity by +/- buttons
+   * Increase / decrease quantity
+   *
+   * delta:
+   * +1 = increase
+   * -1 = decrease
    */
-  const changeQuantity = useCallback((id, delta) => {
-    setItems((currentItems) =>
-      currentItems
-        .map((item) =>
-          item.id === id
+  const updateQuantity = useCallback(
+    (productId, delta) => {
+      setItems((prev) =>
+        prev.map((item) => {
+          if (item.product?.id !== productId) {
+            return item;
+          }
+
+          const currentQty = Number(item.qty);
+
+          if (!Number.isFinite(currentQty)) {
+            return {
+              ...item,
+              qty: 1,
+            };
+          }
+
+          const nextQty = currentQty + Number(delta);
+
+          return {
+            ...item,
+            qty: Math.max(0, nextQty),
+          };
+        })
+      );
+    },
+    []
+  );
+
+  /*
+   * Direct quantity input
+   *
+   * Example:
+   * 1
+   * 1.5
+   * 25
+   * 0.5
+   */
+  const setQuantity = useCallback(
+    (productId, value) => {
+      setItems((prev) =>
+        prev.map((item) =>
+          item.product?.id === productId
             ? {
                 ...item,
-                qty: item.qty + delta,
+                qty: value,
               }
             : item
         )
-        .filter((item) => item.qty > 0)
-    );
-  }, []);
+      );
+    },
+    []
+  );
 
-  /*
-   * Set quantity directly from input.
-   *
-   * Quantity is stored as a string while editing
-   * so values such as "0.5" can be entered naturally.
-   */
-  const setQuantity = useCallback((id, quantity) => {
-    setItems((currentItems) =>
-      currentItems.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              qty: quantity,
-            }
-          : item
+  const updateUnit = useCallback(
+    (productId, unitId) => {
+      setItems((prev) =>
+        prev.map((item) =>
+          item.product?.id === productId
+            ? {
+                ...item,
+                unit: unitId,
+              }
+            : item
+        )
+      );
+    },
+    []
+  );
+
+  const updateRate = useCallback(
+    (productId, value) => {
+      setItems((prev) =>
+        prev.map((item) =>
+          item.product?.id === productId
+            ? {
+                ...item,
+                rate: value,
+              }
+            : item
+        )
+      );
+    },
+    []
+  );
+
+  const removeItem = useCallback((productId) => {
+    setItems((prev) =>
+      prev.filter(
+        (item) => item.product?.id !== productId
       )
     );
   }, []);
 
-  /*
-   * Change rate
-   */
-  const changeRate = useCallback((id, rate) => {
-    setItems((currentItems) =>
-      currentItems.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              rate,
-            }
-          : item
-      )
-    );
-  }, []);
-
-  /*
-   * Remove item
-   */
-  const removeItem = useCallback((id) => {
-    setItems((currentItems) =>
-      currentItems.filter((item) => item.id !== id)
-    );
-  }, []);
-
-  /*
-   * Clear current bill
-   */
-  const clearItems = useCallback(() => {
+  const clearBill = useCallback(() => {
     setItems([]);
   }, []);
 
-  /*
-   * Calculate total only when every item
-   * has a valid rate.
-   */
+  const getItemPrice = useCallback((item) => {
+    const qty = Number(item.qty);
+    const rate = Number(item.rate);
+
+    if (!Number.isFinite(qty) || !Number.isFinite(rate)) {
+      return null;
+    }
+
+    if (qty <= 0 || rate < 0) {
+      return null;
+    }
+
+    return qty * rate;
+  }, []);
+
   const total = useMemo(() => {
     if (items.length === 0) {
       return null;
     }
 
-    const allRatesAvailable = items.every(
-      (item) =>
-        item.rate !== "" &&
-        !Number.isNaN(Number(item.rate))
+    const prices = items.map(getItemPrice);
+
+    const allValid = prices.every(
+      (price) => price !== null
     );
 
-    if (!allRatesAvailable) {
+    if (!allValid) {
       return null;
     }
 
-    return items.reduce((sum, item) => {
-      return sum + Number(item.qty) * Number(item.rate);
-    }, 0);
-  }, [items]);
+    return prices.reduce(
+      (sum, price) => sum + price,
+      0
+    );
+  }, [items, getItemPrice]);
 
   return {
     items,
+
     addItem,
-    changeQuantity,
+
+    // +/- buttons
+    updateQuantity,
+
+    // Direct quantity input
     setQuantity,
-    changeRate,
+
+    updateUnit,
+    updateRate,
     removeItem,
-    clearItems,
+    clearBill,
+
+    getItemPrice,
     total,
   };
 }

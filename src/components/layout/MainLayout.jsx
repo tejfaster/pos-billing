@@ -56,7 +56,8 @@ export default function MainLayout({
         {/* Header */}
         <header
           className="
-            no-print flex h-16 shrink-0
+            no-print
+            flex h-16 shrink-0
             items-center justify-between
             border-b border-[var(--border)]
             bg-[var(--surface)]
@@ -216,7 +217,8 @@ export default function MainLayout({
           className="
             min-h-0
             flex-1
-            overflow-hidden
+            overflow-x-hidden
+            overflow-y-auto
           "
         >
           {children}
