@@ -7,6 +7,8 @@ import {
   useState,
 } from "react";
 
+import { useAuth } from "./AuthContext";
+
 const ProductContext = createContext(null);
 
 const API_URL =
@@ -53,6 +55,7 @@ export function ProductProvider({ children }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { isLoading: authLoading, isAuthenticated } = useAuth();
 
   const fetchProducts = useCallback(
     async ({
@@ -127,8 +130,12 @@ export function ProductProvider({ children }) {
 
   // Fetch products automatically when ProductProvider loads
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+  if (authLoading || !isAuthenticated) {
+    return;
+  }
+
+  fetchProducts();
+}, [authLoading, isAuthenticated, fetchProducts]);
 
   const addProduct = useCallback(async (product) => {
     try {
