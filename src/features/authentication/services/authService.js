@@ -1,6 +1,5 @@
 const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:5001/api";
+  import.meta.env.VITE_API_URL || "/api";
 
 async function request(endpoint, options = {}) {
   let response;
@@ -21,9 +20,7 @@ async function request(endpoint, options = {}) {
     const networkError = new Error(
       "Unable to connect to the server."
     );
-
     networkError.code = "NETWORK_ERROR";
-
     throw networkError;
   }
 
@@ -91,45 +88,45 @@ const authService = {
     return response.user;
   },
 
-
   async changePassword(passwordData) {
-  return request(
-    "/auth/change-password",
-    {
-      method: "POST",
-      body: JSON.stringify(passwordData),
+    return request(
+      "/auth/change-password",
+      {
+        method: "POST",
+        body: JSON.stringify(passwordData),
       }
     );
   },
 
   async requestPasswordReset(emailData) {
-  return request("/auth/password-reset/request", {
-    method: "POST",
-    body: JSON.stringify(emailData),
-    });
-  },
-  
-  async requestPasswordReset(emailData) {
-  return request("/auth/password-reset/request", {
-    method: "POST",
-    body: JSON.stringify(emailData),
-  });
+    return request(
+      "/auth/password-reset/request",
+      {
+        method: "POST",
+        body: JSON.stringify(emailData),
+      }
+    );
   },
 
   async verifyPasswordResetOtp(otpData) {
-    return request("/auth/password-reset/verify", {
-      method: "POST",
-      body: JSON.stringify(otpData),
-    });
+    return request(
+      "/auth/password-reset/verify",
+      {
+        method: "POST",
+        body: JSON.stringify(otpData),
+      }
+    );
   },
 
   async confirmPasswordReset(resetData) {
-  return request("/auth/password-reset/confirm", {
-    method: "POST",
-    body: JSON.stringify(resetData),
-  });
+    return request(
+      "/auth/password-reset/confirm",
+      {
+        method: "POST",
+        body: JSON.stringify(resetData),
+      }
+    );
   },
-
 };
 
 export default authService;

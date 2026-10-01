@@ -10,7 +10,9 @@ export const hi = {
   soon: "जल्द",
 
   createBill: "बिल बनाएँ",
+
   searchAndAddItems:"आइटम खोजें और अपनी सूची में जोड़ें।",
+
   selectedItems: "चयनित आइटम",
   item: "आइटम",
   items: "आइटम",
@@ -18,13 +20,17 @@ export const hi = {
   rate: "दर",
   price: "कीमत",
   total: "कुल",
+
   newBill: "नया बिल",
   printItemList: "आइटम सूची प्रिंट करें",
   preparingPrint: "प्रिंट तैयार हो रहा है...",
 
   searchProduct:"उत्पाद का नाम, कोड या ब्रांड खोजें...",
+
   noProductsFound: "कोई उत्पाद नहीं मिला",
+
   tryDifferentSearch:"कोई दूसरा उत्पाद नाम, कोड या ब्रांड आज़माएँ।",
+
   searchAndSelectItem:"सूची में जोड़ने के लिए आइटम खोजें और चुनें।",
 
   addProduct: "उत्पाद जोड़ें",
@@ -35,8 +41,11 @@ export const hi = {
   cancel: "रद्द करें",
   deleteProduct: "उत्पाद हटाएँ",
 
-  manageProducts:"उत्पादों और उनकी जानकारी का प्रबंधन करें।",
+  manageProducts:
+    "उत्पादों और उनकी जानकारी का प्रबंधन करें।",
+
   selectProduct: "एक उत्पाद चुनें",
+
   selectProductDescription:"किसी मौजूदा उत्पाद को संपादित करने के लिए चुनें, या नया उत्पाद बनाने के लिए उत्पाद जोड़ें पर क्लिक करें।",
 
   basicInformation: "मूल जानकारी",
@@ -62,40 +71,65 @@ export const hi = {
   closeNavigation: "नेविगेशन बंद करें",
   collapseSidebar: "साइडबार छोटा करें",
   expandSidebar: "साइडबार बड़ा करें",
+
   newBillConfirmation:"नया बिल शुरू करें? सभी चयनित आइटम हटा दिए जाएंगे।",
+
   decreaseQuantity: "की मात्रा कम करें",
   increaseQuantity: "की मात्रा बढ़ाएँ",
   quantityFor: "की मात्रा",
   rateFor: "की दर",
   remove: "हटाएँ",
-  deleteProductConfirmationStart: "क्या आप हटाना चाहते हैं",
+
+  deleteProductConfirmationStart:"क्या आप हटाना चाहते हैं",
+
   deleteProductConfirmationEnd:"यह उत्पाद उत्पाद सूची से हटा दिया जाएगा।",
+
   noSku: "SKU उपलब्ध नहीं",
+
   addProductInformation:"उत्पाद की जानकारी और बिक्री की इकाइयाँ जोड़ें।",
+
   productNamePlaceholder:"जैसे: एक्सटीरियर इमल्शन पेंट",
-  brandPlaceholder:"जैसे: एशियन पेंट्स",
+
+  brandPlaceholder: "जैसे: एशियन पेंट्स",
+
   productCodePlaceholder:"जैसे: PNT-EXT-001",
+
   units: "इकाइयाँ",
+
   selectProductUnits:"उन इकाइयों का चयन करें जिनमें यह उत्पाद बेचा जा सकता है।",
+
   addProductUnit: "उत्पाद की इकाई जोड़ें",
   allUnitsAdded: "सभी इकाइयाँ जोड़ दी गई हैं",
   addUnit: "इकाई जोड़ें",
   noUnitsAdded: "कोई इकाई नहीं जोड़ी गई",
+
   addProductUnitsDescription:"वे इकाइयाँ जोड़ें जिनमें यह उत्पाद बेचा जा सकता है।",
+
   unit: "इकाई",
   short: "संक्षिप्त",
+
   date: "दिनांक",
   customerForm: "ग्राहक / फॉर्म",
+
+  billNumber: "बिल नंबर",
+  generatedBy: "बिल बनाने वाला",
+
   serialNumber: "क्रमांक",
+
   settingsDescription:"एप्लिकेशन की दिखावट और एक्सेसिबिलिटी को अपनी पसंद के अनुसार बदलें।",
+
   appearance: "दिखावट",
+
   appearanceDescription:"एप्लिकेशन की थीम और टेक्स्ट का आकार बदलें।",
+
   themeAndTextSize: "थीम और टेक्स्ट आकार",
+
   themeAndTextSizeDescription:"अपनी पसंद की थीम चुनें और टेक्स्ट का आकार बदलें।",
 
   signup: "साइन अप",
   createAccount: "अकाउंट बनाएं",
-  alreadyHaveAccount: "क्या आपके पास पहले से अकाउंट है?",
+  alreadyHaveAccount:"क्या आपके पास पहले से अकाउंट है?",
+
   login: "लॉगिन",
 
   firstName: "पहला नाम",
@@ -105,36 +139,51 @@ export const hi = {
   password: "पासवर्ड",
   confirmPassword: "पासवर्ड की पुष्टि करें",
 
-  firstNamePlaceholder: "अपना पहला नाम दर्ज करें",
-  lastNamePlaceholder: "अपना उपनाम दर्ज करें",
-  phoneNumberPlaceholder: "अपना फोन नंबर दर्ज करें",
-  emailPlaceholder: "अपना ईमेल दर्ज करें",
-  passwordPlaceholder: "अपना पासवर्ड दर्ज करें",
-  confirmPasswordPlaceholder: "अपना पासवर्ड फिर से दर्ज करें",
+  firstNamePlaceholder:"अपना पहला नाम दर्ज करें",
 
-  passwordRequirements: "पासवर्ड की आवश्यकताएं",
-  passwordMinLength: "कम से कम 8 अक्षर",
-  passwordUppercase: "एक बड़ा अक्षर",
-  passwordLowercase: "एक छोटा अक्षर",
-  passwordNumber: "एक नंबर",
-  passwordSpecial: "एक विशेष अक्षर",
+  lastNamePlaceholder:"अपना उपनाम दर्ज करें",
+
+  phoneNumberPlaceholder:"अपना फोन नंबर दर्ज करें",
+
+  emailPlaceholder:"अपना ईमेल दर्ज करें",
+
+  passwordPlaceholder:"अपना पासवर्ड दर्ज करें",
+
+  confirmPasswordPlaceholder:"अपना पासवर्ड फिर से दर्ज करें",
+
+  passwordRequirements:"पासवर्ड की आवश्यकताएं",
+
+  passwordMinLength:"कम से कम 8 अक्षर",
+
+  passwordUppercase:"एक बड़ा अक्षर",
+
+  passwordLowercase:"एक छोटा अक्षर",
+
+  passwordNumber:"एक नंबर",
+
+  passwordSpecial:"एक विशेष अक्षर",
 
   showPassword: "पासवर्ड दिखाएं",
   hidePassword: "पासवर्ड छिपाएं",
-  dontHaveAccount: "क्या आपके पास अकाउंट नहीं है?",
-  loginSubtitle: "अपने POS अकाउंट में जारी रखने के लिए लॉगिन करें।",
+
+  dontHaveAccount:"क्या आपके पास अकाउंट नहीं है?",
+
+  loginSubtitle:"अपने POS अकाउंट में जारी रखने के लिए लॉगिन करें।",
 
   administrator: "व्यवस्थापक",
   user: "उपयोगकर्ता",
   logout: "लॉग आउट",
 
   profile: "प्रोफ़ाइल",
-  profileSubtitle: "अपने खाते की जानकारी प्रबंधित करें।",
+
+  profileSubtitle:"अपने खाते की जानकारी प्रबंधित करें।",
 
   personalInformation: "व्यक्तिगत जानकारी",
+
   personalInformationSubtitle:"आपके व्यक्तिगत खाते का विवरण।",
 
   accountInformation: "खाता जानकारी",
+
   accountInformationSubtitle:"आपके POS खाते की जानकारी।",
 
   role: "भूमिका",
@@ -143,9 +192,11 @@ export const hi = {
   userId: "यूज़र आईडी",
 
   security: "सुरक्षा",
+
   securitySubtitle:"अपने खाते की सुरक्षा प्रबंधित करें।",
 
   passwordDescription:"आपका पासवर्ड सुरक्षित रूप से संग्रहीत है।",
+
   changePassword: "पासवर्ड बदलें",
 
   active: "सक्रिय",
@@ -156,42 +207,94 @@ export const hi = {
 
   currentPassword: "वर्तमान पासवर्ड",
   newPassword: "नया पासवर्ड",
-  currentPasswordRequired:"वर्तमान पासवर्ड आवश्यक है।",
-  invalidCurrentPassword:"वर्तमान पासवर्ड गलत है।",
-  samePassword:"नया पासवर्ड वर्तमान पासवर्ड से अलग होना चाहिए।",
-  passwordChangedSuccessfully:"पासवर्ड सफलतापूर्वक बदल दिया गया है।",
-  changePasswordSubtitle:"अपने खाते को सुरक्षित रखने के लिए अपना पासवर्ड बदलें।",
-  backToProfile:"प्रोफ़ाइल पर वापस जाएँ",
-  changingPassword:"पासवर्ड बदला जा रहा है...",
-  cancel: "रद्द करें",
-  passwordRequired: "पासवर्ड आवश्यक है।",
-  
-  forgotPassword: "पासवर्ड भूल गए?",
-  forgotPasswordSubtitle:"अपना ईमेल पता दर्ज करें और हम आपको सत्यापन कोड भेजेंगे।",
-  sendVerificationCode: "सत्यापन कोड भेजें",
-  sending: "भेजा जा रहा है...",
-  verificationCodeSentTo: "सत्यापन कोड भेजा गया है",
-  verificationCode: "सत्यापन कोड",
-  verifyCode: "कोड सत्यापित करें",
-  verifying: "सत्यापित किया जा रहा है...",
-  resendCode: "कोड दोबारा भेजें",
-  invalidOtp: "6 अंकों का सत्यापन कोड दर्ज करें।",
-  otpCooldown:"कृपया नया सत्यापन कोड मांगने से पहले प्रतीक्षा करें।",
-  back: "वापस",
-  backToLogin: "लॉगिन पर वापस जाएं",
 
-  newPassword: "नया पासवर्ड",
-  newPasswordPlaceholder: "अपना नया पासवर्ड दर्ज करें",
-  confirmPassword: "पासवर्ड की पुष्टि करें",
+  currentPasswordRequired:"वर्तमान पासवर्ड आवश्यक है।",
+
+  invalidCurrentPassword:"वर्तमान पासवर्ड गलत है।",
+
+  samePassword:"नया पासवर्ड वर्तमान पासवर्ड से अलग होना चाहिए।",
+
+  passwordChangedSuccessfully:"पासवर्ड सफलतापूर्वक बदल दिया गया है।",
+
+  changePasswordSubtitle:"अपने खाते को सुरक्षित रखने के लिए अपना पासवर्ड बदलें।",
+
+  backToProfile: "प्रोफ़ाइल पर वापस जाएँ",
+
+  changingPassword:"पासवर्ड बदला जा रहा है...",
+
+  cancel: "रद्द करें",
+
+  passwordRequired:"पासवर्ड आवश्यक है।",
+
+  forgotPassword: "पासवर्ड भूल गए?",
+
+  forgotPasswordSubtitle:"अपना ईमेल पता दर्ज करें और हम आपको सत्यापन कोड भेजेंगे।",
+
+  sendVerificationCode:"सत्यापन कोड भेजें",
+
+  sending: "भेजा जा रहा है...",
+
+  verificationCodeSentTo:"सत्यापन कोड भेजा गया है",
+
+  verificationCode:"सत्यापन कोड",
+
+  verifyCode: "कोड सत्यापित करें",
+
+  verifying: "सत्यापित किया जा रहा है...",
+
+  resendCode: "कोड दोबारा भेजें",
+
+  invalidOtp:"6 अंकों का सत्यापन कोड दर्ज करें।",
+
+  otpCooldown:"कृपया नया सत्यापन कोड मांगने से पहले प्रतीक्षा करें।",
+
+  back: "वापस",
+
+  backToLogin:"लॉगिन पर वापस जाएं",
+
+  newPassword:"नया पासवर्ड",
+
+  newPasswordPlaceholder:"अपना नया पासवर्ड दर्ज करें",
+
+  confirmPassword:"पासवर्ड की पुष्टि करें",
+
   confirmPasswordPlaceholder:"अपना नया पासवर्ड फिर से दर्ज करें",
-  passwordRequirements: "पासवर्ड की आवश्यकताएं",
-  resetPassword: "पासवर्ड रीसेट करें",
-  resettingPassword: "पासवर्ड रीसेट किया जा रहा है...",
+
+  passwordRequirements:"पासवर्ड की आवश्यकताएं",
+
+  resetPassword:"पासवर्ड रीसेट करें",
+
+  resettingPassword:"पासवर्ड रीसेट किया जा रहा है...",
+
   resetPasswordSubtitle:"अपने खाते के लिए नया पासवर्ड बनाएं।",
-  
-  productNameEnglish: "अंग्रेज़ी नाम",
-  productNameHindi: "हिंदी नाम",
-  productNameEnglishPlaceholder: "जैसे: हथौड़ी",
-  productNameHindiPlaceholder: "जैसे: हथौड़ी",
+
+  productNameEnglish:"अंग्रेज़ी नाम",
+
+  productNameHindi:"हिंदी नाम",
+
+  productNameEnglishPlaceholder:"जैसे: हथौड़ी",
+
+  productNameHindiPlaceholder:"जैसे: हथौड़ी",
+
   saving: "सहेजा जा रहा है...",
+
+  billPrefix: "बिल प्रीफ़िक्स",
+
+  billPrefixPlaceholder: "जैसे: RAH",
+
+  billPrefixDescription:"अपने बिल नंबर के लिए ठीक 3 अक्षरों का उपयोग करें।",
+
+  invalidBillPrefix:"बिल प्रीफ़िक्स में ठीक 3 अक्षर होने चाहिए।",
+  billHistory: "बिल इतिहास",
+  billHistorySubtitle: "पिछले बिल देखें और दोबारा प्रिंट करें।", 
+
+  installPos: "POS इंस्टॉल करें",
+  syncNow: "अभी सिंक करें",
+  syncing: "सिंक हो रहा है...",
+  syncSuccessful: "सिंक सफलतापूर्वक पूरा हुआ।",
+  syncFailed: "सिंक विफल हुआ।",
+  lastSynced: "अंतिम सिंक",
+  neverSynced: "अभी तक सिंक नहीं हुआ",
+  offline: "ऑफ़लाइन",
+  online: "ऑनलाइन",
 };

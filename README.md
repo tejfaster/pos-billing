@@ -4,6 +4,8 @@ A modern, responsive Point of Sale (POS) billing application designed for hardwa
 
 The frontend is built with React, Vite, and Tailwind CSS, with a separate Node.js / Express / PostgreSQL backend.
 
+The application is designed to support offline POS billing using a Progressive Web App (PWA) and IndexedDB for local catalogue and bill storage.
+
 ---
 
 ## 🚧 Project Status
@@ -20,7 +22,15 @@ The current frontend provides a working foundation for:
 - Quantity and rate management
 - Automatic price and total calculation
 - A4 bill printing
-- Authentication UI
+- Local bill storage
+- Local bill history
+- Daily bill numbering
+- Offline catalogue storage
+- Offline billing
+- Catalogue synchronization
+- Manual catalogue synchronization
+- Automatic catalogue synchronization
+- PWA installation
 - English and Hindi localization
 - Light and dark themes
 - Accessibility controls
@@ -50,6 +60,10 @@ The billing screen supports:
 - New bill
 - Responsive billing table
 - A4 printing
+- Offline billing
+- Local bill storage
+- Local bill history
+- Daily bill numbering
 
 ### Billing Structure
 
@@ -57,13 +71,13 @@ Each billing item contains:
 
 ```text
 Product
-   ↓
+  ↓
 Quantity
-   ↓
+  ↓
 Unit
-   ↓
+  ↓
 Rate
-   ↓
+  ↓
 Final Price
 ```
 
@@ -71,6 +85,7 @@ Calculation:
 
 ```text
 Final Price = Quantity × Rate
+
 Total = Sum of all valid item prices
 ```
 
@@ -155,6 +170,8 @@ The search interface supports:
 - Matching-text highlighting
 - Hiding products already selected in the current bill
 
+Product search operates from locally synchronized catalogue data.
+
 ---
 
 ## 🌐 Language Support
@@ -231,6 +248,164 @@ Printing supports English/Hindi labels, Indian number formatting, ₹ currency f
 
 ---
 
+## 📱 PWA & Offline Support
+
+The POS application is designed as a Progressive Web App (PWA).
+
+The PWA allows the application to be installed on a supported device and launched in an app-style window.
+
+### Installation
+
+The application provides an **Install POS** option inside:
+
+```text
+Settings
+  ↓
+Sync & Offline
+  ↓
+Install POS
+```
+
+After installation, the application can use its locally cached application shell without requiring Cloudflare to deliver the application again during normal offline use.
+
+### Offline Storage
+
+IndexedDB is used for local application data.
+
+The local offline database contains:
+
+```text
+Products
+Categories
+Units
+Bills
+Bill Counters
+Sync Metadata
+```
+
+### Offline Billing
+
+Billing does not require the backend for normal bill creation.
+
+The offline billing flow is:
+
+```text
+IndexedDB
+    ↓
+Product Search
+    ↓
+Billing
+    ↓
+Bill Number
+    ↓
+Save Bill Locally
+    ↓
+Print
+    ↓
+Local Bill History
+```
+
+Bills are stored locally on the device.
+
+Bills are not stored in the backend database.
+
+### Bill Numbering
+
+Bill numbers are generated locally.
+
+The bill counter is maintained per user and resets for a new business date.
+
+The generated bill number contains:
+
+```text
+Bill Prefix
++
+Daily Sequence Number
+```
+
+Example:
+
+```text
+ABC-000001
+ABC-000002
+ABC-000003
+```
+
+---
+
+## 🔄 Catalogue Synchronization
+
+The backend remains the master source for:
+
+- Products
+- Categories
+- Units
+
+The frontend maintains a local copy in IndexedDB for offline operation.
+
+The synchronization flow is:
+
+```text
+PostgreSQL
+    ↓
+Express Backend
+    ↓
+Sync API
+    ↓
+Frontend
+    ↓
+IndexedDB
+    ↓
+POS Application
+```
+
+### Manual Sync
+
+A manual catalogue synchronization option is available inside:
+
+```text
+Settings
+  ↓
+Sync & Offline
+  ↓
+Sync Now
+```
+
+Manual synchronization requires an internet connection.
+
+The synchronization result records:
+
+- Sync timestamp
+- Number of categories
+- Number of units
+- Number of products
+
+### Automatic Sync
+
+The application includes an automatic catalogue synchronization scheduler.
+
+The scheduler checks the configured synchronization times while the application is running and synchronizes the latest catalogue data directly with the backend.
+
+Automatic synchronization only concerns catalogue data.
+
+Bills remain local to the device.
+
+### Online / Offline Status
+
+The current connection status is displayed inside:
+
+```text
+Settings
+  ↓
+Sync & Offline
+  ↓
+Connection Status
+```
+
+The application automatically reacts to browser online/offline events.
+
+---
+
 ## 🔐 Authentication
 
 Authentication is handled through the separate backend API.
@@ -255,13 +430,15 @@ src/context/AuthContext.jsx
 
 The frontend communicates with the backend using authenticated session cookies.
 
+Authentication is required for the application catalogue synchronization process.
+
 ---
 
 ## 🏗️ Architecture
 
 ```text
 pos-billing/
-│
+
 ├── src/
 │   ├── assets/
 │   ├── components/
@@ -282,10 +459,20 @@ pos-billing/
 │   ├── i18n/
 │   │   ├── en.js
 │   │   └── hi.js
+│   ├── offline/
+│   │   ├── db.js
+│   │   ├── offlineStorage.js
+│   │   ├── billStorage.js
+│   │   ├── billNumber.js
+│   │   ├── syncManager.js
+│   │   ├── syncService.js
+│   │   └── syncScheduler.js
 │   ├── pages/
 │   ├── App.jsx
 │   ├── index.css
 │   └── main.jsx
+│
+├── public/
 │
 ├── .env.local
 ├── .gitignore
@@ -324,6 +511,10 @@ Each billing item has the structure:
 }
 ```
 
+Billing state is maintained locally in the frontend.
+
+Completed bills are stored in IndexedDB.
+
 ---
 
 ## 📦 Product Architecture
@@ -334,14 +525,9 @@ Product data is managed through:
 src/context/ProductContext.jsx
 ```
 
-The product context communicates with the backend API for:
+The product context uses locally synchronized catalogue data for normal product browsing and billing.
 
-- Fetching products
-- Adding products
-- Updating products
-- Deleting products
-- Searching products
-- Filtering products
+Product management operations communicate with the backend when an internet connection is available.
 
 Product data includes:
 
@@ -368,6 +554,8 @@ Categories are managed through:
 src/context/CategoryContext.jsx
 ```
 
+Categories are synchronized from the backend and stored locally for offline product browsing and billing.
+
 Categories are used by product management and product search.
 
 ---
@@ -380,6 +568,8 @@ Units are managed through:
 src/context/UnitContext.jsx
 ```
 
+Units are synchronized from the backend and stored locally.
+
 Billing items store the selected unit separately:
 
 ```text
@@ -389,6 +579,59 @@ Billing Item
 ├── Unit
 └── Rate
 ```
+
+---
+
+## 💾 Offline Architecture
+
+The application uses IndexedDB through the `idb` package.
+
+The local database contains separate stores for catalogue and billing data.
+
+```text
+IndexedDB
+│
+├── products
+├── categories
+├── units
+├── bills
+├── billCounters
+└── syncMetadata
+```
+
+### Catalogue
+
+```text
+Backend
+   ↓
+Sync API
+   ↓
+IndexedDB
+   ↓
+ProductContext
+CategoryContext
+UnitContext
+   ↓
+POS
+```
+
+### Billing
+
+```text
+Local Catalogue
+      ↓
+Billing
+      ↓
+Local Bill Number
+      ↓
+IndexedDB
+      ↓
+Bill History
+      ↓
+Print
+```
+
+Bills do not need to be uploaded to the backend.
 
 ---
 
@@ -404,7 +647,9 @@ pos-backend
 
 GitHub:
 
+```text
 https://github.com/tejfaster/pos-backend
+```
 
 The backend provides APIs for:
 
@@ -415,6 +660,9 @@ The backend provides APIs for:
 - Units
 - Password reset
 - OTP verification
+- Catalogue synchronization
+
+The backend database uses PostgreSQL.
 
 ---
 
@@ -429,6 +677,9 @@ The backend provides APIs for:
 - JSX
 - React Context
 - React Hooks
+- IndexedDB
+- idb
+- Vite PWA
 
 ### Backend
 
@@ -500,10 +751,28 @@ npm run preview
 
 ## 🔄 Frontend Data Flow
 
+### Catalogue Synchronization
+
+```text
+PostgreSQL
+      ↓
+Express Backend
+      ↓
+Sync API
+      ↓
+Frontend Sync Manager
+      ↓
+IndexedDB
+      ↓
+ProductContext
+CategoryContext
+UnitContext
+```
+
 ### Billing
 
 ```text
-Backend Product API
+IndexedDB Catalogue
         ↓
 ProductContext
         ↓
@@ -520,6 +789,8 @@ Quantity / Unit / Rate
 Final Price
         ↓
 Total
+        ↓
+Local Bill Storage
         ↓
 BillPrint
 ```
@@ -610,14 +881,23 @@ Session Authentication
 - [x] Protected routes
 - [x] Authentication state management
 
-### Phase 5 — Billing Improvements
+### Phase 5 — Offline & PWA
 
-- [ ] Customer / Form field
-- [ ] Bill number
-- [ ] Bill validation
-- [ ] Improved keyboard workflow
-- [ ] Bill draft handling
-- [ ] Saved bills
+- [x] IndexedDB database
+- [x] Local product storage
+- [x] Local category storage
+- [x] Local unit storage
+- [x] Local bill storage
+- [x] Local bill history
+- [x] Local bill numbering
+- [x] Daily bill counter reset
+- [x] Offline billing foundation
+- [x] Catalogue sync API
+- [x] Manual catalogue synchronization
+- [x] Automatic catalogue synchronization
+- [x] Online / Offline status
+- [x] PWA installation support
+- [x] Offline application shell
 
 ### Phase 6 — Customer Management
 
@@ -630,13 +910,13 @@ Session Authentication
 
 ### Phase 7 — Bill Management
 
-- [ ] Save bills
-- [ ] Bill history
-- [ ] View bill
-- [ ] Reprint bill
+- [x] Save bills locally
+- [x] Bill history locally
+- [x] View bill
+- [x] Reprint bill
 - [ ] Search bills
 - [ ] Filter bills
-- [ ] Bill details
+- [x] Bill details
 
 ### Phase 8 — Inventory
 
@@ -710,19 +990,22 @@ Example:
 
 ```bash
 git checkout dev
-git checkout -b feature/billing-improvements
+git checkout -b feature/offline-storage
 ```
 
 After completing the feature:
 
 ```bash
 git add .
-git commit -m "feat: improve billing workflow"
+git commit -m "feat: add offline POS support"
+
 git checkout dev
-git merge feature/billing-improvements
+git merge feature/offline-storage
 ```
 
 Stable changes can later be merged into `main`.
+
+Production deployments use the `main` branch.
 
 ---
 
