@@ -1,4 +1,8 @@
-import { useCallback, useMemo, useState } from "react";
+import {
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 
 export default function useBilling() {
   const [items, setItems] = useState([]);
@@ -6,7 +10,8 @@ export default function useBilling() {
   const addItem = useCallback((product) => {
     setItems((prev) => {
       const existing = prev.find(
-        (item) => item.product?.id === product.id
+        (item) =>
+          item.product?.id === product.id
       );
 
       if (existing) {
@@ -14,7 +19,8 @@ export default function useBilling() {
           item.product?.id === product.id
             ? {
                 ...item,
-                qty: Number(item.qty || 0) + 1,
+                qty:
+                  Number(item.qty || 0) + 1,
               }
             : item
         );
@@ -32,35 +38,39 @@ export default function useBilling() {
     });
   }, []);
 
-  /*
-   * Increase / decrease quantity
-   *
-   * delta:
-   * +1 = increase
-   * -1 = decrease
-   */
   const updateQuantity = useCallback(
     (productId, delta) => {
       setItems((prev) =>
         prev.map((item) => {
-          if (item.product?.id !== productId) {
+          if (
+            item.product?.id !== productId
+          ) {
             return item;
           }
 
-          const currentQty = Number(item.qty);
+          const currentQty =
+            Number(item.qty);
 
-          if (!Number.isFinite(currentQty)) {
+          if (
+            !Number.isFinite(
+              currentQty
+            )
+          ) {
             return {
               ...item,
               qty: 1,
             };
           }
 
-          const nextQty = currentQty + Number(delta);
+          const nextQty =
+            currentQty + Number(delta);
 
           return {
             ...item,
-            qty: Math.max(0, nextQty),
+            qty: Math.max(
+              0,
+              nextQty
+            ),
           };
         })
       );
@@ -68,15 +78,6 @@ export default function useBilling() {
     []
   );
 
-  /*
-   * Direct quantity input
-   *
-   * Example:
-   * 1
-   * 1.5
-   * 25
-   * 0.5
-   */
   const setQuantity = useCallback(
     (productId, value) => {
       setItems((prev) =>
@@ -125,71 +126,164 @@ export default function useBilling() {
     []
   );
 
-  const removeItem = useCallback((productId) => {
-    setItems((prev) =>
-      prev.filter(
-        (item) => item.product?.id !== productId
-      )
-    );
-  }, []);
+  const removeItem = useCallback(
+    (productId) => {
+      setItems((prev) =>
+        prev.filter(
+          (item) =>
+            item.product?.id !==
+            productId
+        )
+      );
+    },
+    []
+  );
 
   const clearBill = useCallback(() => {
     setItems([]);
   }, []);
 
-  const getItemPrice = useCallback((item) => {
-    const qty = Number(item.qty);
-    const rate = Number(item.rate);
+  /*
+   * Load an existing saved bill
+   * back into the normal billing editor.
+   *
+   * Important:
+   * This does NOT create a new bill number.
+   * The existing bill number is handled
+   * by Billing.jsx when we connect editing.
+   */
+  const loadBill = useCallback(
+    (bill) => {
+      if (!bill) {
+        return;
+      }
 
-    if (!Number.isFinite(qty) || !Number.isFinite(rate)) {
-      return null;
-    }
+      const loadedItems = (
+        bill.items || []
+      ).map((item) => ({
+        product: {
+          id: item.productId,
 
-    if (qty <= 0 || rate < 0) {
-      return null;
-    }
+          nameEn:
+            item.nameEn || "",
 
-    return qty * rate;
-  }, []);
+          nameHi:
+            item.nameHi || "",
+
+          brand:
+            item.brand || "",
+
+          unitId:
+            item.unitId ?? null,
+
+          unitNameEn:
+            item.unitNameEn || "",
+
+          unitNameHi:
+            item.unitNameHi || "",
+
+          unitShortName:
+            item.unitShortName || "",
+
+          unitType:
+            item.unitType || "",
+        },
+
+        qty:
+          item.quantity ?? "",
+
+        unit:
+          item.unitId ?? "",
+
+        rate:
+          item.rate ?? "",
+      }));
+
+      setItems(loadedItems);
+    },
+    []
+  );
+
+  const getItemPrice = useCallback(
+    (item) => {
+      const qty = Number(
+        item.qty
+      );
+
+      const rate = Number(
+        item.rate
+      );
+
+      if (
+        !Number.isFinite(qty) ||
+        !Number.isFinite(rate)
+      ) {
+        return null;
+      }
+
+      if (
+        qty <= 0 ||
+        rate < 0
+      ) {
+        return null;
+      }
+
+      return qty * rate;
+    },
+    []
+  );
 
   const total = useMemo(() => {
     if (items.length === 0) {
       return null;
     }
 
-    const prices = items.map(getItemPrice);
+    const prices =
+      items.map(
+        getItemPrice
+      );
 
-    const allValid = prices.every(
-      (price) => price !== null
-    );
+    const allValid =
+      prices.every(
+        (price) =>
+          price !== null
+      );
 
     if (!allValid) {
       return null;
     }
 
     return prices.reduce(
-      (sum, price) => sum + price,
+      (sum, price) =>
+        sum + price,
       0
     );
-  }, [items, getItemPrice]);
+  }, [
+    items,
+    getItemPrice,
+  ]);
 
   return {
     items,
 
     addItem,
 
-    // +/- buttons
     updateQuantity,
 
-    // Direct quantity input
     setQuantity,
 
     updateUnit,
+
     updateRate,
+
     removeItem,
+
     clearBill,
 
+    loadBill,
+
     getItemPrice,
+
     total,
   };
 }

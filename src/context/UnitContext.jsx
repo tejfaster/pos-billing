@@ -7,29 +7,37 @@ import {
   useState,
 } from "react";
 
+import { useAuth } from "./AuthContext";
+
+import { getUnits } from "../offline/offlineStorage";
+
 const UnitContext = createContext(null);
 
 const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:5001/api";
+  import.meta.env.VITE_API_URL || "/api";
 
 const normalizeUnit = (unit) => ({
   id: unit.id,
+
   nameEn:
     unit.name_en ??
     unit.nameEn ??
     "",
+
   nameHi:
     unit.name_hi ??
     unit.nameHi ??
     "",
+
   shortName:
     unit.short_name ??
     unit.shortName ??
     "",
+
   type:
     unit.type ??
     "",
+
   status:
     unit.status ??
     "active",
@@ -40,77 +48,42 @@ export function UnitProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchUnits = useCallback(
+  const {
+    isLoading: authLoading,
+    isAuthenticated,
+  } = useAuth();
+
+  const loadLocalUnits = useCallback(
     async ({ status = "active" } = {}) => {
       try {
         setLoading(true);
         setError(null);
 
-        const params = new URLSearchParams();
-
-        if (status) {
-          params.set("status", status);
-        }
-
-        const queryString = params.toString();
-
-        const response = await fetch(
-          `${API_URL}/units${
-            queryString
-              ? `?${queryString}`
-              : ""
-          }`,
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
-
-        const result = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            result?.message ||
-              "Failed to fetch units."
-          );
-        }
-
-        /*
-         * Backend may return:
-         *
-         * []
-         *
-         * or
-         *
-         * { data: [] }
-         *
-         * or
-         *
-         * { units: [] }
-         */
-        const unitList = Array.isArray(result)
-          ? result
-          : Array.isArray(result?.data)
-          ? result.data
-          : Array.isArray(result?.units)
-          ? result.units
-          : [];
+        const localUnits =
+          await getUnits();
 
         const normalizedUnits =
-          unitList.map(normalizeUnit);
+          localUnits.map(normalizeUnit);
 
-        setUnits(normalizedUnits);
+        const filteredUnits = status
+          ? normalizedUnits.filter(
+              (unit) =>
+                unit.status === status
+            )
+          : normalizedUnits;
 
-        return normalizedUnits;
+        setUnits(filteredUnits);
+
+        return filteredUnits;
       } catch (err) {
         console.error(
-          "Fetch units error:",
+          "Load local units error:",
           err
         );
 
         setError(
           err?.message ||
-            "Failed to fetch units."
+            "Failed to load units."
         );
 
         return [];
@@ -121,16 +94,37 @@ export function UnitProvider({ children }) {
     []
   );
 
+  const fetchUnits = useCallback(
+    async ({ status = "active" } = {}) => {
+      return loadLocalUnits({
+        status,
+      });
+    },
+    [loadLocalUnits]
+  );
+
   useEffect(() => {
-    fetchUnits();
-  }, [fetchUnits]);
+    if (
+      authLoading ||
+      !isAuthenticated
+    ) {
+      return;
+    }
+
+    loadLocalUnits();
+  }, [
+    authLoading,
+    isAuthenticated,
+    loadLocalUnits,
+  ]);
 
   const getUnit = useCallback(
     (id) => {
       return (
         units.find(
           (unit) =>
-            String(unit.id) === String(id)
+            String(unit.id) ===
+            String(id)
         ) || null
       );
     },
@@ -155,14 +149,17 @@ export function UnitProvider({ children }) {
   );
 
   return (
-    <UnitContext.Provider value={value}>
+    <UnitContext.Provider
+      value={value}
+    >
       {children}
     </UnitContext.Provider>
   );
 }
 
 export function useUnits() {
-  const context = useContext(UnitContext);
+  const context =
+    useContext(UnitContext);
 
   if (!context) {
     throw new Error(

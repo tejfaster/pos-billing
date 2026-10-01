@@ -30,10 +30,45 @@ export default function Sidebar({
             strokeLinejoin="round"
             d="M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"
           />
+
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
             d="M8 7h8M8 11h8M8 15h5"
+          />
+        </svg>
+      ),
+    },
+
+    {
+      id: "bill-history",
+        label: t("billHistory"),
+      enabled: true,
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          className="h-5 w-5 shrink-0"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"
+          />
+
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M8 7h8M8 11h5"
+          />
+
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15 15h4M17 13v4"
           />
         </svg>
       ),
@@ -57,11 +92,13 @@ export default function Sidebar({
             strokeLinejoin="round"
             d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"
           />
+
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
             d="m4.5 7.5 7.5 4 7.5-4"
           />
+
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -74,12 +111,6 @@ export default function Sidebar({
     {
       id: "customers",
       label: t("customers"),
-      enabled: false,
-    },
-
-    {
-      id: "bills",
-      label: t("bills"),
       enabled: false,
     },
 
@@ -144,7 +175,8 @@ export default function Sidebar({
 
   const roleLabel =
     user?.role === "admin"
-      ? t("administrator") || "Administrator"
+      ? t("administrator") ||
+        "Administrator"
       : t("user") || "User";
 
   const handleNavigation = (page) => {
@@ -399,7 +431,8 @@ export default function Sidebar({
                     text-[var(--foreground)]
                   "
                 >
-                  {fullName || t("user")}
+                  {fullName ||
+                    t("user")}
                 </p>
 
                 <p
@@ -421,7 +454,8 @@ export default function Sidebar({
             onClick={handleLogout}
             title={
               collapsed
-                ? t("logout") || "Logout"
+                ? t("logout") ||
+                  "Logout"
                 : undefined
             }
             className={`
@@ -471,7 +505,8 @@ export default function Sidebar({
 
             {!collapsed && (
               <span>
-                {t("logout") || "Logout"}
+                {t("logout") ||
+                  "Logout"}
               </span>
             )}
           </button>

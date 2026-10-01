@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Sidebar from "./Sidebar";
 
@@ -15,15 +15,92 @@ export default function MainLayout({
   const [mobileMenuOpen, setMobileMenuOpen] =
     useState(false);
 
-  const { language, setLanguage, t } =
-    useLanguage();
+  const [installPrompt, setInstallPrompt] =
+    useState(null);
+
+  const [isInstalled, setIsInstalled] =
+    useState(false);
+
+  const {
+    language,
+    setLanguage,
+    t,
+  } = useLanguage();
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(
+      "(display-mode: standalone)"
+    );
+
+    const updateInstalledState = () => {
+      setIsInstalled(mediaQuery.matches);
+    };
+
+    updateInstalledState();
+
+    const handleBeforeInstallPrompt = (event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+    };
+
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+    };
+
+    window.addEventListener(
+      "beforeinstallprompt",
+      handleBeforeInstallPrompt
+    );
+
+    window.addEventListener(
+      "appinstalled",
+      handleAppInstalled
+    );
+
+    mediaQuery.addEventListener(
+      "change",
+      updateInstalledState
+    );
+
+    return () => {
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
+
+      window.removeEventListener(
+        "appinstalled",
+        handleAppInstalled
+      );
+
+      mediaQuery.removeEventListener(
+        "change",
+        updateInstalledState
+      );
+    };
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+
+    installPrompt.prompt();
+
+    const { outcome } =
+      await installPrompt.userChoice;
+
+    if (outcome === "accepted") {
+      setInstallPrompt(null);
+    }
+  };
 
   const pageTitles = {
     billing: t("billing"),
     products: t("products"),
     settings: t("settings"),
     profile: t("profile"),
-    "change-password": t("changePassword"),
+    "change-password":
+      t("changePassword"),
   };
 
   const pageTitle =
@@ -72,8 +149,12 @@ export default function MainLayout({
               onClick={() =>
                 setMobileMenuOpen(true)
               }
-              aria-label={t("openNavigation")}
-              title={t("openNavigation")}
+              aria-label={t(
+                "openNavigation"
+              )}
+              title={t(
+                "openNavigation"
+              )}
               className="
                 flex h-10 w-10 shrink-0
                 items-center justify-center
@@ -95,7 +176,8 @@ export default function MainLayout({
               type="button"
               onClick={() =>
                 setSidebarCollapsed(
-                  (collapsed) => !collapsed
+                  (collapsed) =>
+                    !collapsed
                 )
               }
               aria-label={
@@ -121,7 +203,9 @@ export default function MainLayout({
                 lg:flex
               "
             >
-              {sidebarCollapsed ? "→" : "←"}
+              {sidebarCollapsed
+                ? "→"
+                : "←"}
             </button>
 
             {/* Page title */}
@@ -140,6 +224,28 @@ export default function MainLayout({
 
           {/* Right side */}
           <div className="flex shrink-0 items-center gap-2">
+            {/* Install POS */}
+            {installPrompt &&
+              !isInstalled && (
+                <button
+                  type="button"
+                  onClick={handleInstall}
+                  className="
+                    rounded-lg
+                    border border-[var(--border)]
+                    bg-[var(--surface)]
+                    px-3 py-2
+                    text-sm font-medium
+                    text-[var(--foreground)]
+                    transition
+                    hover:bg-[var(--muted)]/10
+                    active:scale-95
+                  "
+                >
+                  {t("installPos")}
+                </button>
+              )}
+
             {/* Language */}
             <div
               className="
