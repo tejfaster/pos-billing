@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 
 import ItemSearch from "../features/billing/components/ItemSearch";
@@ -76,10 +77,7 @@ export default function Billing({
       }
     };
 
-    window.addEventListener(
-      "afterprint",
-      handleAfterPrint
-    );
+    window.addEventListener("afterprint", handleAfterPrint);
 
     return () => {
       window.removeEventListener(
@@ -125,16 +123,13 @@ export default function Billing({
 
     return (
       units.find(
-        (unit) =>
-          String(unit.id) ===
-          String(unitId)
+        (unit) => String(unit.id) === String(unitId)
       ) || null
     );
   };
 
   const getUnitSnapshot = (unitId) => {
-    const unit =
-      getSelectedUnit(unitId);
+    const unit = getSelectedUnit(unitId);
 
     if (!unit) {
       return null;
@@ -142,22 +137,9 @@ export default function Billing({
 
     return {
       id: unit.id,
-
-      nameEn:
-        unit.nameEn ||
-        unit.name_en ||
-        "",
-
-      nameHi:
-        unit.nameHi ||
-        unit.name_hi ||
-        "",
-
-      shortName:
-        unit.shortName ||
-        unit.short_name ||
-        "",
-
+      nameEn: unit.nameEn || unit.name_en || "",
+      nameHi: unit.nameHi || unit.name_hi || "",
+      shortName: unit.shortName || unit.short_name || "",
       type: unit.type || "",
     };
   };
@@ -168,40 +150,44 @@ export default function Billing({
 
   const createBillSnapshot = () => {
     return items.map((item) => {
-      const product =
-        item?.product || {};
+      const product = item?.product || {};
 
-      const unit =
-        getUnitSnapshot(
-          item?.unit
-        );
+      const unit = getUnitSnapshot(item?.unit);
 
-      const quantity =
-        item?.qty ?? "";
+      const quantity = item?.qty ?? "";
+      const rate = item?.rate ?? "";
 
-      const rate =
-        item?.rate ?? "";
+      // Empty strings must not be converted to zero.
+      const hasQuantity =
+        quantity !== "" &&
+        quantity !== null &&
+        quantity !== undefined &&
+        Number.isFinite(Number(quantity));
 
-      const numericQuantity =
-        Number(quantity);
+      const hasRate =
+        rate !== "" &&
+        rate !== null &&
+        rate !== undefined &&
+        Number.isFinite(Number(rate));
 
-      const numericRate =
-        Number(rate);
+      const numericQuantity = hasQuantity
+        ? Number(quantity)
+        : null;
+
+      const numericRate = hasRate
+        ? Number(rate)
+        : null;
 
       const price =
-        Number.isFinite(
-          numericQuantity
-        ) &&
-        Number.isFinite(
-          numericRate
-        )
-          ? numericQuantity *
-            numericRate
+        numericQuantity !== null &&
+        numericRate !== null &&
+        numericQuantity > 0 &&
+        numericRate >= 0
+          ? numericQuantity * numericRate
           : null;
 
       return {
-        productId:
-          product.id ?? null,
+        productId: product.id ?? null,
 
         nameEn:
           product.nameEn ||
@@ -213,8 +199,7 @@ export default function Billing({
           product.name_hi ||
           "",
 
-        brand:
-          product.brand || "",
+        brand: product.brand || "",
 
         quantity,
 
@@ -223,20 +208,12 @@ export default function Billing({
           item?.unit ??
           null,
 
-        unitNameEn:
-          unit?.nameEn || "",
-
-        unitNameHi:
-          unit?.nameHi || "",
-
-        unitShortName:
-          unit?.shortName || "",
-
-        unitType:
-          unit?.type || "",
+        unitNameEn: unit?.nameEn || "",
+        unitNameHi: unit?.nameHi || "",
+        unitShortName: unit?.shortName || "",
+        unitType: unit?.type || "",
 
         rate,
-
         price,
       };
     });
@@ -269,10 +246,6 @@ export default function Billing({
       return;
     }
 
-    if (total === null) {
-      return;
-    }
-
     setIsPrinting(true);
 
     try {
@@ -291,26 +264,15 @@ export default function Billing({
       if (editingBill) {
         const updatedBill = {
           ...editingBill,
-
-          items:
-            createBillSnapshot(),
-
+          items: createBillSnapshot(),
           total,
-
-          syncStatus:
-            "pending",
-
-          updatedAt:
-            new Date().toISOString(),
+          syncStatus: "pending",
+          updatedAt: new Date().toISOString(),
         };
 
-        await saveBill(
-          updatedBill
-        );
+        await saveBill(updatedBill);
 
-        setPrintBill(
-          updatedBill
-        );
+        setPrintBill(updatedBill);
       } else {
         /*
          * NEW BILL
@@ -318,12 +280,10 @@ export default function Billing({
          * Generate a new bill number.
          */
 
-        const billNumberData =
-          await generateBillNumber({
-            userId: user.id,
-            prefix:
-              user.bill_prefix,
-          });
+        const billNumberData = await generateBillNumber({
+          userId: user.id,
+          prefix: user.bill_prefix,
+        });
 
         const generatedByName =
           `${user.first_name || ""} ${
@@ -331,35 +291,28 @@ export default function Billing({
           }`.trim();
 
         const bill = {
-          localId:
-            crypto.randomUUID(),
+          localId: crypto.randomUUID(),
 
-          billNumber:
-            billNumberData.billNumber,
+          billNumber: billNumberData.billNumber,
 
-          sequenceNumber:
-            billNumberData.sequenceNumber,
+          sequenceNumber: billNumberData.sequenceNumber,
 
-          userId:
-            user.id,
+          userId: user.id,
 
           generatedBy: {
             userId: user.id,
             name: generatedByName,
           },
 
-          createdAt:
-            new Date().toISOString(),
+          createdAt: new Date().toISOString(),
 
           customerName: "",
 
-          items:
-            createBillSnapshot(),
+          items: createBillSnapshot(),
 
           total,
 
-          syncStatus:
-            "pending",
+          syncStatus: "pending",
         };
 
         await saveBill(bill);
@@ -424,18 +377,14 @@ export default function Billing({
               <p className="mt-1 text-sm text-[var(--muted)]">
                 {editingBill
                   ? `Editing ${editingBill.billNumber}`
-                  : t(
-                      "searchAndAddItems"
-                    )}
+                  : t("searchAndAddItems")}
               </p>
             </div>
 
             {editingBill && (
               <button
                 type="button"
-                onClick={
-                  handleNewBill
-                }
+                onClick={handleNewBill}
                 className="
                   shrink-0
                   text-sm
@@ -462,9 +411,7 @@ export default function Billing({
               {/* Product Search */}
 
               <div className="shrink-0">
-                <ItemSearch
-                  onAdd={addItem}
-                />
+                <ItemSearch onAdd={addItem} />
               </div>
 
               {/* Items */}
@@ -492,9 +439,7 @@ export default function Billing({
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <h3 className="text-lg font-semibold">
-                      {t(
-                        "selectedItems"
-                      )}
+                      {t("selectedItems")}
                     </h3>
 
                     <span className="shrink-0 text-sm text-[var(--muted)]">
@@ -505,24 +450,21 @@ export default function Billing({
                     </span>
                   </div>
 
-                  {items.length > 0 &&
-                    !editingBill && (
-                      <button
-                        type="button"
-                        onClick={
-                          handleNewBill
-                        }
-                        className="
-                          shrink-0
-                          text-sm
-                          text-[var(--danger)]
-                          transition
-                          hover:underline
-                        "
-                      >
-                        {t("newBill")}
-                      </button>
-                    )}
+                  {items.length > 0 && !editingBill && (
+                    <button
+                      type="button"
+                      onClick={handleNewBill}
+                      className="
+                        shrink-0
+                        text-sm
+                        text-[var(--danger)]
+                        transition
+                        hover:underline
+                      "
+                    >
+                      {t("newBill")}
+                    </button>
+                  )}
                 </div>
 
                 {/* Item List */}
@@ -538,21 +480,11 @@ export default function Billing({
                 >
                   <ItemList
                     items={items}
-                    onChangeQuantity={
-                      updateQuantity
-                    }
-                    onSetQuantity={
-                      setQuantity
-                    }
-                    onChangeUnit={
-                      updateUnit
-                    }
-                    onChangeRate={
-                      updateRate
-                    }
-                    onRemove={
-                      removeItem
-                    }
+                    onChangeQuantity={updateQuantity}
+                    onSetQuantity={setQuantity}
+                    onChangeUnit={updateUnit}
+                    onChangeRate={updateRate}
+                    onRemove={removeItem}
                   />
                 </div>
 
@@ -594,14 +526,8 @@ export default function Billing({
                   <div className="mt-6 shrink-0">
                     <button
                       type="button"
-                      onClick={
-                        handlePrint
-                      }
-                      disabled={
-                        isPrinting ||
-                        total === null ||
-                        isLoadingBill
-                      }
+                      onClick={handlePrint}
+                      disabled={isPrinting || isLoadingBill}
                       className="
                         w-full
                         rounded-lg
@@ -619,14 +545,10 @@ export default function Billing({
                       "
                     >
                       {isPrinting
-                        ? t(
-                            "preparingPrint"
-                          )
+                        ? t("preparingPrint")
                         : editingBill
                         ? "Update & Print"
-                        : t(
-                            "printItemList"
-                          )}
+                        : t("printItemList")}
                     </button>
                   </div>
                 )}
@@ -638,9 +560,7 @@ export default function Billing({
 
       {/* Print-only bill */}
 
-      <BillPrint
-        bill={printBill}
-      />
+      <BillPrint bill={printBill} />
     </>
   );
 }

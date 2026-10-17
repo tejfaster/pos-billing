@@ -1,143 +1,69 @@
+
 import { useEffect, useState } from "react";
 
 import AccessibilityControls from "../components/common/AccessibilityControls";
 import { useLanguage } from "../context/LanguageContext";
 import { syncNow, getSyncStatus } from "../offline/syncService";
+import { installPWA } from "../pwaInstall";
 
 export default function Settings() {
-  const {
-    t,
-    language,
-    setLanguage,
-  } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
 
-  const [isOnline, setIsOnline] =
-    useState(navigator.onLine);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [syncing, setSyncing] = useState(false);
+  const [lastSync, setLastSync] = useState(null);
+  const [syncMessage, setSyncMessage] = useState("");
+  const [syncError, setSyncError] = useState("");
+  const [installMessage, setInstallMessage] = useState("");
+  const [isInstalled, setIsInstalled] = useState(
+    () =>
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true
+  );
 
-  const [syncing, setSyncing] =
-    useState(false);
-
-  const [lastSync, setLastSync] =
-    useState(null);
-
-  const [syncMessage, setSyncMessage] =
-    useState("");
-
-  const [syncError, setSyncError] =
-    useState("");
-
-  const [installPrompt, setInstallPrompt] =
-    useState(null);
-
-  const [isInstalled, setIsInstalled] =
-    useState(false);
-
-  // ---------------------------------
-  // Online / Offline Status
-  // ---------------------------------
-
+  // Online / Offline status
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-    };
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
-    const handleOffline = () => {
-      setIsOnline(false);
-    };
-
-    window.addEventListener(
-      "online",
-      handleOnline
-    );
-
-    window.addEventListener(
-      "offline",
-      handleOffline
-    );
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
-      window.removeEventListener(
-        "online",
-        handleOnline
-      );
-
-      window.removeEventListener(
-        "offline",
-        handleOffline
-      );
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, []);
 
-  // ---------------------------------
-  // PWA Install
-  // ---------------------------------
-
+  // PWA installation status
   useEffect(() => {
-    const handleBeforeInstallPrompt = (
-      event
-    ) => {
-      event.preventDefault();
-      setInstallPrompt(event);
-    };
-
     const handleAppInstalled = () => {
-      setInstallPrompt(null);
       setIsInstalled(true);
+      setInstallMessage("POS Billing installed successfully.");
     };
 
-    const standalone =
-      window.matchMedia(
-        "(display-mode: standalone)"
-      ).matches ||
-      window.navigator.standalone === true;
-
-    setIsInstalled(standalone);
-
-    window.addEventListener(
-      "beforeinstallprompt",
-      handleBeforeInstallPrompt
-    );
-
-    window.addEventListener(
-      "appinstalled",
-      handleAppInstalled
-    );
+    window.addEventListener("pos-app-installed", handleAppInstalled);
+    window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
-      window.removeEventListener(
-        "beforeinstallprompt",
-        handleBeforeInstallPrompt
-      );
-
-      window.removeEventListener(
-        "appinstalled",
-        handleAppInstalled
-      );
+      window.removeEventListener("pos-app-installed", handleAppInstalled);
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
 
-  // ---------------------------------
-  // Load Sync Status
-  // ---------------------------------
-
+  // Load sync status
   useEffect(() => {
     let mounted = true;
 
     const loadSyncStatus = async () => {
       try {
-        const status =
-          await getSyncStatus();
+        const status = await getSyncStatus();
 
-        if (!mounted) {
-          return;
+        if (mounted) {
+          setLastSync(status.lastSync);
         }
-
-        setLastSync(status.lastSync);
       } catch (error) {
-        console.error(
-          "Failed to load sync status:",
-          error
-        );
+        console.error("Failed to load sync status:", error);
       }
     };
 
@@ -148,19 +74,12 @@ export default function Settings() {
     };
   }, []);
 
-  // ---------------------------------
-  // Manual Sync
-  // ---------------------------------
-
+  // Manual catalogue sync
   const handleSync = async () => {
-    if (syncing) {
-      return;
-    }
+    if (syncing) return;
 
     if (!isOnline) {
-      setSyncError(
-        t("offline") || "Offline"
-      );
+      setSyncError(t("offline") || "Offline");
       setSyncMessage("");
       return;
     }
@@ -171,69 +90,59 @@ export default function Settings() {
 
     try {
       const result = await syncNow();
-
       setLastSync(result);
-
       setSyncMessage(
-        t("syncSuccessful") ||
-          "Sync completed successfully."
+        t("syncSuccessful") || "Sync completed successfully."
       );
     } catch (error) {
-      console.error(
-        "Manual sync failed:",
-        error
-      );
-
+      console.error("Manual sync failed:", error);
       setSyncError(
-        error?.message ||
-          t("syncFailed") ||
-          "Sync failed."
+        error?.message || t("syncFailed") || "Sync failed."
       );
     } finally {
       setSyncing(false);
     }
   };
 
-  // ---------------------------------
-  // Install POS
-  // ---------------------------------
-
+  // Install POS Billing
   const handleInstall = async () => {
-    if (!installPrompt) {
+    setInstallMessage("");
+
+    if (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true
+    ) {
+      setIsInstalled(true);
+      setInstallMessage("POS Billing is already installed.");
       return;
     }
 
     try {
-      await installPrompt.prompt();
+      const result = await installPWA();
 
-      await installPrompt.userChoice;
-
-      setInstallPrompt(null);
+      if (result.outcome === "accepted") {
+        setInstallMessage("Installation accepted by your browser.");
+      } else if (result.outcome === "dismissed") {
+        setInstallMessage("Installation was cancelled.");
+      } else {
+        setInstallMessage(
+          "Installation is not available in this browser session yet."
+        );
+      }
     } catch (error) {
-      console.error(
-        "PWA installation failed:",
-        error
-      );
+      console.error("PWA installation failed:", error);
+      setInstallMessage("The browser could not start installation.");
     }
   };
 
-  // ---------------------------------
-  // Last Sync Display
-  // ---------------------------------
-
-  const formattedLastSync =
-    lastSync?.syncedAt
-      ? new Date(
-          lastSync.syncedAt
-        ).toLocaleString()
-      : null;
+  const formattedLastSync = lastSync?.syncedAt
+    ? new Date(lastSync.syncedAt).toLocaleString()
+    : null;
 
   return (
     <div className="h-full overflow-y-auto p-4 sm:p-6">
       <div className="mx-auto max-w-4xl space-y-6">
-
         {/* Page Header */}
-
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
             {t("settings")}
@@ -244,18 +153,8 @@ export default function Settings() {
           </p>
         </div>
 
-        {/* ---------------------------------
-            Appearance
-        --------------------------------- */}
-
-        <section
-          className="
-            rounded-xl
-            border border-[var(--border)]
-            bg-[var(--surface)]
-            p-5
-          "
-        >
+        {/* Appearance */}
+        <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
           <div className="mb-5">
             <h2 className="text-lg font-semibold">
               {t("appearance")}
@@ -266,26 +165,14 @@ export default function Settings() {
             </p>
           </div>
 
-          <div
-            className="
-              flex flex-col gap-4
-              rounded-lg
-              border border-[var(--border)]
-              p-4
-              sm:flex-row
-              sm:items-center
-              sm:justify-between
-            "
-          >
+          <div className="flex flex-col gap-4 rounded-lg border border-[var(--border)] p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-medium">
                 {t("themeAndTextSize")}
               </p>
 
               <p className="mt-1 text-sm text-[var(--muted)]">
-                {t(
-                  "themeAndTextSizeDescription"
-                )}
+                {t("themeAndTextSizeDescription")}
               </p>
             </div>
 
@@ -293,18 +180,8 @@ export default function Settings() {
           </div>
         </section>
 
-        {/* ---------------------------------
-            Language
-        --------------------------------- */}
-
-        <section
-          className="
-            rounded-xl
-            border border-[var(--border)]
-            bg-[var(--surface)]
-            p-5
-          "
-        >
+        {/* Language */}
+        <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
           <div className="mb-5">
             <h2 className="text-lg font-semibold">
               {t("language") || "Language"}
@@ -316,198 +193,99 @@ export default function Settings() {
             </p>
           </div>
 
-          <div
-            className="
-              flex
-              w-fit
-              overflow-hidden
-              rounded-lg
-              border border-[var(--border)]
-            "
-          >
+          <div className="flex w-fit overflow-hidden rounded-lg border border-[var(--border)]">
             <button
               type="button"
-              onClick={() =>
-                setLanguage("en")
-              }
-              className={`
-                px-5 py-2.5
-                text-sm font-medium
-                transition
-                ${
-                  language === "en"
-                    ? "bg-[var(--foreground)] text-[var(--background)]"
-                    : "text-[var(--muted)] hover:bg-[var(--background)]"
-                }
-              `}
+              onClick={() => setLanguage("en")}
+              className={`px-5 py-2.5 text-sm font-medium transition ${
+                language === "en"
+                  ? "bg-[var(--foreground)] text-[var(--background)]"
+                  : "text-[var(--muted)] hover:bg-[var(--background)]"
+              }`}
             >
               EN
             </button>
 
             <button
               type="button"
-              onClick={() =>
-                setLanguage("hi")
-              }
-              className={`
-                px-5 py-2.5
-                text-sm font-medium
-                transition
-                ${
-                  language === "hi"
-                    ? "bg-[var(--foreground)] text-[var(--background)]"
-                    : "text-[var(--muted)] hover:bg-[var(--background)]"
-                }
-              `}
+              onClick={() => setLanguage("hi")}
+              className={`px-5 py-2.5 text-sm font-medium transition ${
+                language === "hi"
+                  ? "bg-[var(--foreground)] text-[var(--background)]"
+                  : "text-[var(--muted)] hover:bg-[var(--background)]"
+              }`}
             >
               हिंदी
             </button>
           </div>
         </section>
 
-        {/* ---------------------------------
-            Connection & Sync
-        --------------------------------- */}
-
-        <section
-          className="
-            rounded-xl
-            border border-[var(--border)]
-            bg-[var(--surface)]
-            p-5
-          "
-        >
+        {/* Connection & Sync */}
+        <section className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5">
           <div className="mb-5">
             <h2 className="text-lg font-semibold">
-              {t("syncAndOffline") ||
-                "Sync & Offline"}
+              {t("syncAndOffline") || "Sync & Offline"}
             </h2>
 
             <p className="mt-1 text-sm text-[var(--muted)]">
-              {t(
-                "syncAndOfflineDescription"
-              ) ||
+              {t("syncAndOfflineDescription") ||
                 "Manage catalogue synchronization and offline availability."}
             </p>
           </div>
 
           <div className="space-y-4">
-
             {/* Connection Status */}
-
-            <div
-              className="
-                flex flex-col gap-3
-                rounded-lg
-                border border-[var(--border)]
-                p-4
-                sm:flex-row
-                sm:items-center
-                sm:justify-between
-              "
-            >
+            <div className="flex flex-col gap-3 rounded-lg border border-[var(--border)] p-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="font-medium">
-                  {t("connectionStatus") ||
-                    "Connection Status"}
+                  {t("connectionStatus") || "Connection Status"}
                 </p>
 
                 <p className="mt-1 text-sm text-[var(--muted)]">
                   {isOnline
-                    ? t("online") ||
-                      "Online"
-                    : t("offline") ||
-                      "Offline"}
+                    ? t("online") || "Online"
+                    : t("offline") || "Offline"}
                 </p>
               </div>
 
-              <div
-                className="
-                  inline-flex
-                  w-fit
-                  items-center
-                  gap-2
-                  rounded-lg
-                  border border-[var(--border)]
-                  px-3 py-2
-                  text-sm
-                "
-              >
+              <div className="inline-flex w-fit items-center gap-2 rounded-lg border border-[var(--border)] px-3 py-2 text-sm">
                 <span
-                  className={`
-                    h-2.5 w-2.5 rounded-full
-                    ${
-                      isOnline
-                        ? "bg-green-500"
-                        : "bg-red-500"
-                    }
-                  `}
+                  className={`h-2.5 w-2.5 rounded-full ${
+                    isOnline ? "bg-green-500" : "bg-red-500"
+                  }`}
                 />
 
                 {isOnline
-                  ? t("online") ||
-                    "Online"
-                  : t("offline") ||
-                    "Offline"}
+                  ? t("online") || "Online"
+                  : t("offline") || "Offline"}
               </div>
             </div>
 
             {/* Manual Sync */}
-
-            <div
-              className="
-                flex flex-col gap-4
-                rounded-lg
-                border border-[var(--border)]
-                p-4
-                sm:flex-row
-                sm:items-center
-                sm:justify-between
-              "
-            >
+            <div className="flex flex-col gap-4 rounded-lg border border-[var(--border)] p-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="font-medium">
-                  {t("catalogueSync") ||
-                    "Catalogue Sync"}
+                  {t("catalogueSync") || "Catalogue Sync"}
                 </p>
 
                 <p className="mt-1 text-sm text-[var(--muted)]">
-                  {lastSync?.syncedAt
-                    ? `${
-                        t("lastSynced") ||
-                        "Last synced"
-                      }: ${formattedLastSync}`
-                    : t("neverSynced") ||
-                      "Never synced"}
+                  {formattedLastSync
+                    ? `${t("lastSynced") || "Last synced"}: ${formattedLastSync}`
+                    : t("neverSynced") || "Never synced"}
                 </p>
               </div>
 
               <button
                 type="button"
                 onClick={handleSync}
-                disabled={
-                  syncing || !isOnline
-                }
-                className="
-                  rounded-lg
-                  border border-[var(--border)]
-                  px-4 py-2.5
-                  text-sm font-medium
-                  transition
-                  hover:bg-[var(--background)]
-                  disabled:cursor-not-allowed
-                  disabled:opacity-50
-                "
+                disabled={syncing || !isOnline}
+                className="rounded-lg border border-[var(--border)] px-4 py-2.5 text-sm font-medium transition hover:bg-[var(--background)] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {syncing
-                  ? t("syncing") ||
-                    "Syncing..."
-                  : t("syncNow") ||
-                    "Sync Now"}
+                  ? t("syncing") || "Syncing..."
+                  : t("syncNow") || "Sync Now"}
               </button>
             </div>
-
-            {/* Sync Result */}
 
             {syncMessage && (
               <p className="text-sm text-green-600">
@@ -522,51 +300,39 @@ export default function Settings() {
             )}
 
             {/* Install POS */}
+            <div className="flex flex-col gap-4 rounded-lg border border-[var(--border)] p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-medium">
+                  {t("installPos") || "Install POS"}
+                </p>
 
-            {!isInstalled &&
-              installPrompt && (
-                <div
-                  className="
-                    flex flex-col gap-4
-                    rounded-lg
-                    border border-[var(--border)]
-                    p-4
-                    sm:flex-row
-                    sm:items-center
-                    sm:justify-between
-                  "
+                <p className="mt-1 text-sm text-[var(--muted)]">
+                  {isInstalled
+                    ? "POS Billing is installed on this device."
+                    : "Install POS Billing on this device for app-style and offline use."}
+                </p>
+              </div>
+
+              {isInstalled ? (
+                <span className="rounded-lg border border-[var(--border)] px-4 py-2.5 text-sm font-medium">
+                  Installed
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleInstall}
+                  className="rounded-lg border border-[var(--border)] px-4 py-2.5 text-sm font-medium transition hover:bg-[var(--background)]"
                 >
-                  <div>
-                    <p className="font-medium">
-                      {t("installPos") ||
-                        "Install POS"}
-                    </p>
-
-                    <p className="mt-1 text-sm text-[var(--muted)]">
-                      Install POS on this device
-                      for app-style and offline
-                      use.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleInstall}
-                    className="
-                      rounded-lg
-                      border border-[var(--border)]
-                      px-4 py-2.5
-                      text-sm font-medium
-                      transition
-                      hover:bg-[var(--background)]
-                    "
-                  >
-                    {t("installPos") ||
-                      "Install POS"}
-                  </button>
-                </div>
+                  Install app
+                </button>
               )}
+            </div>
 
+            {installMessage && (
+              <p className="text-sm text-[var(--muted)]" role="status">
+                {installMessage}
+              </p>
+            )}
           </div>
         </section>
       </div>

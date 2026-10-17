@@ -1,3 +1,4 @@
+
 import { useLanguage } from "../../../context/LanguageContext";
 
 export default function BillPrint({ bill }) {
@@ -23,18 +24,10 @@ export default function BillPrint({ bill }) {
     }
 
     if (language === "hi") {
-      return (
-        item.nameHi ||
-        item.nameEn ||
-        ""
-      );
+      return item.nameHi || item.nameEn || "";
     }
 
-    return (
-      item.nameEn ||
-      item.nameHi ||
-      ""
-    );
+    return item.nameEn || item.nameHi || "";
   };
 
   const getLocalizedUnitName = (item) => {
@@ -42,14 +35,10 @@ export default function BillPrint({ bill }) {
       return "";
     }
 
-    let unitName =
+    const unitName =
       language === "hi"
-        ? item.unitNameHi ||
-          item.unitNameEn ||
-          ""
-        : item.unitNameEn ||
-          item.unitNameHi ||
-          "";
+        ? item.unitNameHi || item.unitNameEn || ""
+        : item.unitNameEn || item.unitNameHi || "";
 
     if (!unitName) {
       return "";
@@ -61,6 +50,37 @@ export default function BillPrint({ bill }) {
 
     return unitName;
   };
+
+  const hasValidNumber = (value) => {
+    if (
+      value === "" ||
+      value === null ||
+      value === undefined
+    ) {
+      return false;
+    }
+
+    return Number.isFinite(Number(value));
+  };
+
+  const allItemsValid = items.every((item) => {
+    const hasQuantity = hasValidNumber(item.quantity);
+    const hasRate = hasValidNumber(item.rate);
+
+    if (!hasQuantity || !hasRate) {
+      return false;
+    }
+
+    return Number(item.quantity) > 0 && Number(item.rate) >= 0;
+  });
+
+  const hasValidTotal =
+    bill.total !== "" &&
+    bill.total !== null &&
+    bill.total !== undefined &&
+    Number.isFinite(Number(bill.total));
+
+  const shouldShowTotal = allItemsValid && hasValidTotal;
 
   return (
     <div className="print-only print-page">
@@ -76,8 +96,7 @@ export default function BillPrint({ bill }) {
           </div>
 
           <div className="print-bill-number">
-            {t("billNumber")}:{" "}
-            {bill.billNumber}
+            {t("billNumber")}: {bill.billNumber}
           </div>
 
           <div className="print-generated-by">
@@ -134,7 +153,7 @@ export default function BillPrint({ bill }) {
                 getLocalizedProductName(item);
 
               const unitName =
-                getLocalizedUnitName(item) || "-";
+                getLocalizedUnitName(item);
 
               const qty =
                 item.quantity !== undefined &&
@@ -142,34 +161,27 @@ export default function BillPrint({ bill }) {
                   ? item.quantity
                   : "";
 
-              const hasRate =
-                item.rate !== "" &&
-                item.rate !== null &&
-                item.rate !== undefined &&
-                !Number.isNaN(
-                  Number(item.rate)
-                );
+              const hasQuantity = hasValidNumber(qty);
+              const hasRate = hasValidNumber(item.rate);
+
+              const numericQty = hasQuantity
+                ? Number(qty)
+                : null;
 
               const rate = hasRate
                 ? Number(item.rate)
                 : null;
 
-              const numericQty =
-                Number(qty);
-
               const price =
+                numericQty !== null &&
                 rate !== null &&
-                Number.isFinite(numericQty)
+                numericQty > 0 &&
+                rate >= 0
                   ? numericQty * rate
                   : null;
 
               return (
-                <tr
-                  key={
-                    item.productId ??
-                    index
-                  }
-                >
+                <tr key={item.productId ?? index}>
                   {/* Serial Number */}
                   <td className="text-center">
                     {index + 1}
@@ -181,8 +193,7 @@ export default function BillPrint({ bill }) {
 
                     {item.brand && (
                       <span className="print-brand">
-                        {" "}
-                        — {item.brand}
+                        {" "}— {item.brand}
                       </span>
                     )}
                   </td>
@@ -199,27 +210,21 @@ export default function BillPrint({ bill }) {
 
                   {/* Rate */}
                   <td className="text-right">
-                    {rate !== null
-                      ? `₹${rate.toLocaleString(
-                          "en-IN",
-                          {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          }
-                        )}`
+                    {rate !== null && rate >= 0
+                      ? `₹${rate.toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}`
                       : ""}
                   </td>
 
                   {/* Price */}
                   <td className="text-right">
                     {price !== null
-                      ? `₹${price.toLocaleString(
-                          "en-IN",
-                          {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          }
-                        )}`
+                      ? `₹${price.toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}`
                       : ""}
                   </td>
                 </tr>
@@ -232,26 +237,23 @@ export default function BillPrint({ bill }) {
             TOTAL
         ================================= */}
 
-        <div className="print-total">
-          <span>
-            {t("total")}:
-          </span>
+        {shouldShowTotal && (
+          <div className="print-total">
+            <span>
+              {t("total")}:
+            </span>
 
-          <span className="print-total-value">
-            {bill.total !== null &&
-            bill.total !== undefined
-              ? `₹${Number(
-                  bill.total
-                ).toLocaleString(
-                  "en-IN",
-                  {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }
-                )}`
-              : ""}
-          </span>
-        </div>
+            <span className="print-total-value">
+              {`₹${Number(bill.total).toLocaleString(
+                "en-IN",
+                {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }
+              )}`}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

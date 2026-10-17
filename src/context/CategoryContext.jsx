@@ -1,3 +1,4 @@
+
 import {
   createContext,
   useCallback,
@@ -8,40 +9,68 @@ import {
 } from "react";
 
 import { useAuth } from "./AuthContext";
-import { getCategories } from "../offline/offlineStorage";
+
+import {
+  getCategories,
+  getLocalCategory,
+  saveLocalCategory,
+  savePendingOperation,
+  getPendingOperations,
+  updatePendingOperation,
+} from "../offline/offlineStorage";
 
 const CategoryContext = createContext(null);
 
-const API_URL =
-  import.meta.env.VITE_API_URL || "/api";
-
 const normalizeCategory = (category) => ({
   id: category.id,
-
-  nameEn:
-    category.name_en ??
-    category.nameEn ??
-    "",
-
-  nameHi:
-    category.name_hi ??
-    category.nameHi ??
-    "",
-
-  status:
-    category.status ??
-    "active",
-
-  createdAt:
-    category.created_at ??
-    category.createdAt ??
-    null,
-
-  updatedAt:
-    category.updated_at ??
-    category.updatedAt ??
-    null,
+  nameEn: category.name_en ?? category.nameEn ?? "",
+  nameHi: category.name_hi ?? category.nameHi ?? "",
+  status: category.status ?? "active",
+  createdAt: category.created_at ?? category.createdAt ?? null,
+  updatedAt: category.updated_at ?? category.updatedAt ?? null,
 });
+
+function createLocalId() {
+  if (globalThis.crypto?.randomUUID) {
+    return `local-${globalThis.crypto.randomUUID()}`;
+  }
+
+  return `local-${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2)}`;
+}
+
+function createOperationId() {
+  return createLocalId();
+}
+
+async function queueCategoryOperation({
+  action,
+  recordId,
+  payload,
+}) {
+  return savePendingOperation({
+    localId: createOperationId(),
+    storeName: "categories",
+    action,
+    recordId,
+    payload,
+    status: "pending",
+    createdAt: new Date().toISOString(),
+  });
+}
+
+async function findPendingCreate(recordId) {
+  const operations = await getPendingOperations();
+
+  return operations.find(
+    (operation) =>
+      operation.storeName === "categories" &&
+      String(operation.recordId) === String(recordId) &&
+      operation.action === "create" &&
+      operation.status === "pending"
+  );
+}
 
 export function CategoryProvider({ children }) {
   const [categories, setCategories] = useState([]);
@@ -59,16 +88,14 @@ export function CategoryProvider({ children }) {
         setLoading(true);
         setError(null);
 
-        const localCategories =
-          await getCategories();
+        const localCategories = await getCategories();
 
         const normalizedCategories =
           localCategories.map(normalizeCategory);
 
         const filteredCategories = status
           ? normalizedCategories.filter(
-              (category) =>
-                category.status === status
+              (category) => category.status === status
             )
           : normalizedCategories;
 
@@ -76,14 +103,10 @@ export function CategoryProvider({ children }) {
 
         return filteredCategories;
       } catch (err) {
-        console.error(
-          "Load local categories error:",
-          err
-        );
+        console.error("Load local categories error:", err);
 
         setError(
-          err?.message ||
-            "Failed to load categories."
+          err?.message || "Failed to load categories."
         );
 
         return [];
@@ -96,18 +119,13 @@ export function CategoryProvider({ children }) {
 
   const fetchCategories = useCallback(
     async ({ status = "active" } = {}) => {
-      return loadLocalCategories({
-        status,
-      });
+      return loadLocalCategories({ status });
     },
     [loadLocalCategories]
   );
 
   useEffect(() => {
-    if (
-      authLoading ||
-      !isAuthenticated
-    ) {
+    if (authLoading || !isAuthenticated) {
       return;
     }
 
@@ -119,57 +137,65 @@ export function CategoryProvider({ children }) {
   ]);
 
   const getCategory = useCallback(
-    (id) => {
-      return (
-        categories.find(
-          (category) =>
-            String(category.id) ===
-            String(id)
-        ) || null
-      );
-    },
+    (id) =>
+      categories.find(
+        (category) => String(category.id) === String(id)
+      ) || null,
     [categories]
   );
 
+  // Create locally first and queue it for synchronization.
   const addCategory = useCallback(
     async (categoryData) => {
-      if (!navigator.onLine) {
-        throw new Error(
-          "You are offline. Adding categories offline is not available yet."
-        );
+      const nameEn = String(
+        categoryData.nameEn ?? categoryData.name_en ?? ""
+      ).trim();
+
+      const nameHi = String(
+        categoryData.nameHi ?? categoryData.name_hi ?? ""
+      ).trim();
+
+      if (!nameEn) {
+        throw new Error("Category name is required.");
       }
 
-      const response = await fetch(
-        `${API_URL}/categories`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type":
-              "application/json",
+      const now = new Date().toISOString();
+
+      const category = {
+        id: createLocalId(),
+        nameEn,
+        nameHi,
+        status: "active",
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      // Save the local record before queuing its creation.
+      await saveLocalCategory(category);
+
+      try {
+        await queueCategoryOperation({
+          action: "create",
+          recordId: category.id,
+          payload: {
+            nameEn: category.nameEn,
+            nameHi: category.nameHi || null,
           },
-          body:
-            JSON.stringify(categoryData),
-        }
-      );
-
-      const result =
-        await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          result?.message ||
-            "Failed to add category."
+        });
+      } catch (err) {
+        // Avoid leaving an unqueued category behind.
+        // If deletion fails, the next local refresh may show it.
+        console.error(
+          "Failed to queue category creation:",
+          err
         );
+        throw err;
       }
-
-      const category =
-        normalizeCategory(
-          result?.data ?? result
-        );
 
       setCategories((current) => [
-        ...current,
+        ...current.filter(
+          (item) => String(item.id) !== String(category.id)
+        ),
         category,
       ]);
 
@@ -178,93 +204,119 @@ export function CategoryProvider({ children }) {
     []
   );
 
+  // Update the local record and queue the change.
   const updateCategory = useCallback(
     async (id, categoryData) => {
-      if (!navigator.onLine) {
-        throw new Error(
-          "You are offline. Updating categories offline is not available yet."
-        );
+      const existing = await getLocalCategory(id);
+
+      if (!existing) {
+        throw new Error("Category not found locally.");
       }
 
-      const response = await fetch(
-        `${API_URL}/categories/${id}`,
-        {
-          method: "PATCH",
-          credentials: "include",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body:
-            JSON.stringify(categoryData),
+      const current = normalizeCategory(existing);
+
+      const next = normalizeCategory({
+        ...current,
+        ...categoryData,
+        id: current.id,
+        updatedAt: new Date().toISOString(),
+      });
+
+      if (!next.nameEn.trim()) {
+        throw new Error("Category name is required.");
+      }
+
+      await saveLocalCategory(next);
+
+      const payload = {
+        nameEn: next.nameEn,
+        nameHi: next.nameHi || null,
+      };
+
+      const pendingCreate = await findPendingCreate(id);
+
+      if (pendingCreate) {
+        // A category not yet on the server only needs its
+        // queued creation payload updated.
+        await updatePendingOperation({
+          ...pendingCreate,
+          payload,
+        });
+      } else {
+        await queueCategoryOperation({
+          action: "update",
+          recordId: id,
+          payload,
+        });
+      }
+
+      setCategories((currentCategories) => {
+        if (next.status !== "active") {
+          return currentCategories.filter(
+            (item) => String(item.id) !== String(id)
+          );
         }
-      );
 
-      const result =
-        await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          result?.message ||
-            "Failed to update category."
-        );
-      }
-
-      const category =
-        normalizeCategory(
-          result?.data ?? result
+        const exists = currentCategories.some(
+          (item) => String(item.id) === String(id)
         );
 
-      setCategories((current) =>
-        current.map((item) =>
-          String(item.id) ===
-          String(id)
-            ? category
-            : item
-        )
-      );
+        return exists
+          ? currentCategories.map((item) =>
+              String(item.id) === String(id) ? next : item
+            )
+          : [...currentCategories, next];
+      });
 
-      return category;
+      return next;
     },
     []
   );
 
+  // Deactivation is local-first; the sync manager will send DELETE.
   const removeCategory = useCallback(
     async (id) => {
-      if (!navigator.onLine) {
-        throw new Error(
-          "You are offline. Removing categories offline is not available yet."
-        );
+      const existing = await getLocalCategory(id);
+
+      if (!existing) {
+        throw new Error("Category not found locally.");
       }
 
-      const response =
-        await fetch(
-          `${API_URL}/categories/${id}`,
-          {
-            method: "DELETE",
-            credentials: "include",
-          }
-        );
+      const current = normalizeCategory(existing);
 
-      const result =
-        await response.json();
+      const inactiveCategory = {
+        ...current,
+        status: "inactive",
+        updatedAt: new Date().toISOString(),
+      };
 
-      if (!response.ok) {
-        throw new Error(
-          result?.message ||
-            "Failed to remove category."
-        );
+      await saveLocalCategory(inactiveCategory);
+
+      const pendingCreate = await findPendingCreate(id);
+
+      if (pendingCreate) {
+        // It has never reached the backend. Keep the create queued
+        // so its temporary ID can be mapped, then deactivate it.
+        await queueCategoryOperation({
+          action: "deactivate",
+          recordId: id,
+          payload: {},
+        });
+      } else {
+        await queueCategoryOperation({
+          action: "deactivate",
+          recordId: id,
+          payload: {},
+        });
       }
 
-      setCategories((current) =>
-        current.filter(
-          (category) =>
-            String(category.id) !==
-            String(id)
+      setCategories((currentCategories) =>
+        currentCategories.filter(
+          (category) => String(category.id) !== String(id)
         )
       );
 
-      return result;
+      return inactiveCategory;
     },
     []
   );
@@ -293,17 +345,14 @@ export function CategoryProvider({ children }) {
   );
 
   return (
-    <CategoryContext.Provider
-      value={value}
-    >
+    <CategoryContext.Provider value={value}>
       {children}
     </CategoryContext.Provider>
   );
 }
 
 export function useCategories() {
-  const context =
-    useContext(CategoryContext);
+  const context = useContext(CategoryContext);
 
   if (!context) {
     throw new Error(
