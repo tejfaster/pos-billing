@@ -1,8 +1,5 @@
-import {
-  useCallback,
-  useMemo,
-  useState,
-} from "react";
+
+import { useCallback, useMemo, useState } from "react";
 
 export default function useBilling() {
   const [items, setItems] = useState([]);
@@ -10,8 +7,7 @@ export default function useBilling() {
   const addItem = useCallback((product) => {
     setItems((prev) => {
       const existing = prev.find(
-        (item) =>
-          item.product?.id === product.id
+        (item) => item.product?.id === product.id
       );
 
       if (existing) {
@@ -19,8 +15,7 @@ export default function useBilling() {
           item.product?.id === product.id
             ? {
                 ...item,
-                qty:
-                  Number(item.qty || 0) + 1,
+                qty: Number(item.qty || 0) + 1,
               }
             : item
         );
@@ -38,252 +33,152 @@ export default function useBilling() {
     });
   }, []);
 
-  const updateQuantity = useCallback(
-    (productId, delta) => {
-      setItems((prev) =>
-        prev.map((item) => {
-          if (
-            item.product?.id !== productId
-          ) {
-            return item;
-          }
+  const updateQuantity = useCallback((productId, delta) => {
+    setItems((prev) =>
+      prev.map((item) => {
+        if (item.product?.id !== productId) {
+          return item;
+        }
 
-          const currentQty =
-            Number(item.qty);
+        const currentQty = Number(item.qty);
 
-          if (
-            !Number.isFinite(
-              currentQty
-            )
-          ) {
-            return {
-              ...item,
-              qty: 1,
-            };
-          }
+        if (!Number.isFinite(currentQty)) {
+          return { ...item, qty: 1 };
+        }
 
-          const nextQty =
-            currentQty + Number(delta);
+        const nextQty = currentQty + Number(delta);
 
-          return {
-            ...item,
-            qty: Math.max(
-              0,
-              nextQty
-            ),
-          };
-        })
-      );
-    },
-    []
-  );
+        return {
+          ...item,
+          qty: Math.max(0, nextQty),
+        };
+      })
+    );
+  }, []);
 
-  const setQuantity = useCallback(
-    (productId, value) => {
-      setItems((prev) =>
-        prev.map((item) =>
-          item.product?.id === productId
-            ? {
-                ...item,
-                qty: value,
-              }
-            : item
-        )
-      );
-    },
-    []
-  );
+  const setQuantity = useCallback((productId, value) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.product?.id === productId
+          ? { ...item, qty: value }
+          : item
+      )
+    );
+  }, []);
 
-  const updateUnit = useCallback(
-    (productId, unitId) => {
-      setItems((prev) =>
-        prev.map((item) =>
-          item.product?.id === productId
-            ? {
-                ...item,
-                unit: unitId,
-              }
-            : item
-        )
-      );
-    },
-    []
-  );
+  const updateUnit = useCallback((productId, unitId) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.product?.id === productId
+          ? { ...item, unit: unitId }
+          : item
+      )
+    );
+  }, []);
 
-  const updateRate = useCallback(
-    (productId, value) => {
-      setItems((prev) =>
-        prev.map((item) =>
-          item.product?.id === productId
-            ? {
-                ...item,
-                rate: value,
-              }
-            : item
-        )
-      );
-    },
-    []
-  );
+  const updateRate = useCallback((productId, value) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.product?.id === productId
+          ? { ...item, rate: value }
+          : item
+      )
+    );
+  }, []);
 
-  const removeItem = useCallback(
-    (productId) => {
-      setItems((prev) =>
-        prev.filter(
-          (item) =>
-            item.product?.id !==
-            productId
-        )
-      );
-    },
-    []
-  );
+  const removeItem = useCallback((productId) => {
+    setItems((prev) =>
+      prev.filter((item) => item.product?.id !== productId)
+    );
+  }, []);
 
   const clearBill = useCallback(() => {
     setItems([]);
   }, []);
 
-  /*
-   * Load an existing saved bill
-   * back into the normal billing editor.
-   *
-   * Important:
-   * This does NOT create a new bill number.
-   * The existing bill number is handled
-   * by Billing.jsx when we connect editing.
-   */
-  const loadBill = useCallback(
-    (bill) => {
-      if (!bill) {
-        return;
-      }
+  const loadBill = useCallback((bill) => {
+    if (!bill) {
+      return;
+    }
 
-      const loadedItems = (
-        bill.items || []
-      ).map((item) => ({
-        product: {
-          id: item.productId,
+    const loadedItems = (bill.items || []).map((item) => ({
+      product: {
+        id: item.productId,
+        nameEn: item.nameEn || "",
+        nameHi: item.nameHi || "",
+        brand: item.brand || "",
+        unitId: item.unitId ?? null,
+        unitNameEn: item.unitNameEn || "",
+        unitNameHi: item.unitNameHi || "",
+        unitShortName: item.unitShortName || "",
+        unitType: item.unitType || "",
+      },
+      qty: item.quantity ?? "",
+      unit: item.unitId ?? "",
+      rate: item.rate ?? "",
+    }));
 
-          nameEn:
-            item.nameEn || "",
+    setItems(loadedItems);
+  }, []);
 
-          nameHi:
-            item.nameHi || "",
+  const getItemPrice = useCallback((item) => {
+    const hasQuantity =
+      item.qty !== "" &&
+      item.qty !== null &&
+      item.qty !== undefined &&
+      Number.isFinite(Number(item.qty));
 
-          brand:
-            item.brand || "",
+    const hasRate =
+      item.rate !== "" &&
+      item.rate !== null &&
+      item.rate !== undefined &&
+      Number.isFinite(Number(item.rate));
 
-          unitId:
-            item.unitId ?? null,
+    if (!hasQuantity || !hasRate) {
+      return null;
+    }
 
-          unitNameEn:
-            item.unitNameEn || "",
+    const qty = Number(item.qty);
+    const rate = Number(item.rate);
 
-          unitNameHi:
-            item.unitNameHi || "",
+    if (qty <= 0 || rate < 0) {
+      return null;
+    }
 
-          unitShortName:
-            item.unitShortName || "",
-
-          unitType:
-            item.unitType || "",
-        },
-
-        qty:
-          item.quantity ?? "",
-
-        unit:
-          item.unitId ?? "",
-
-        rate:
-          item.rate ?? "",
-      }));
-
-      setItems(loadedItems);
-    },
-    []
-  );
-
-  const getItemPrice = useCallback(
-    (item) => {
-      const qty = Number(
-        item.qty
-      );
-
-      const rate = Number(
-        item.rate
-      );
-
-      if (
-        !Number.isFinite(qty) ||
-        !Number.isFinite(rate)
-      ) {
-        return null;
-      }
-
-      if (
-        qty <= 0 ||
-        rate < 0
-      ) {
-        return null;
-      }
-
-      return qty * rate;
-    },
-    []
-  );
+    return qty * rate;
+  }, []);
 
   const total = useMemo(() => {
     if (items.length === 0) {
       return null;
     }
 
-    const prices =
-      items.map(
-        getItemPrice
-      );
-
-    const allValid =
-      prices.every(
-        (price) =>
-          price !== null
-      );
+    const prices = items.map(getItemPrice);
+    const allValid = prices.every(
+      (price) => price !== null
+    );
 
     if (!allValid) {
       return null;
     }
 
     return prices.reduce(
-      (sum, price) =>
-        sum + price,
+      (sum, price) => sum + price,
       0
     );
-  }, [
-    items,
-    getItemPrice,
-  ]);
+  }, [items, getItemPrice]);
 
   return {
     items,
-
     addItem,
-
     updateQuantity,
-
     setQuantity,
-
     updateUnit,
-
     updateRate,
-
     removeItem,
-
     clearBill,
-
     loadBill,
-
     getItemPrice,
-
     total,
   };
 }

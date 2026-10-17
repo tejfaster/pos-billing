@@ -18,35 +18,19 @@ import AuthLayout from "./features/authentication/components/AuthLayout";
 
 import { useAuth } from "./context/AuthContext";
 import { useLanguage } from "./context/LanguageContext";
+
 import { startAutomaticSyncScheduler } from "./offline/syncScheduler";
 
-
 export default function App() {
-  const [currentPage, setCurrentPage] =
-    useState("billing");
-
-  const [editingBill, setEditingBill] =
-    useState(null);
-
-  const [authPage, setAuthPage] =
-    useState("login");
-
-  const [resetEmail, setResetEmail] =
-    useState("");
-
-  const [resetToken, setResetToken] =
-    useState("");
-
+  const { isAuthenticated, isLoading } = useAuth();
   const { t } = useLanguage();
 
-  const {
-    isAuthenticated,
-    isLoading,
-  } = useAuth();
+  const [currentPage, setCurrentPage] = useState("billing");
+  const [editingBill, setEditingBill] = useState(null);
 
-  // ---------------------------------
-  // Automatic Offline Catalogue Sync
-  // ---------------------------------
+  const [authPage, setAuthPage] = useState("login");
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetToken, setResetToken] = useState("");
 
   useEffect(() => {
     if (isLoading || !isAuthenticated) {
@@ -56,22 +40,9 @@ export default function App() {
     return startAutomaticSyncScheduler();
   }, [isLoading, isAuthenticated]);
 
-  // ---------------------------------
-  // Authentication Loading
-  // ---------------------------------
-
   if (isLoading) {
     return (
-      <div
-        className="
-          flex
-          min-h-screen
-          items-center
-          justify-center
-          bg-[var(--background)]
-          text-[var(--foreground)]
-        "
-      >
+      <div className="flex min-h-dvh items-center justify-center bg-[var(--background)] text-[var(--foreground)]">
         <p className="text-sm text-[var(--muted)]">
           {t("loading") || "Loading..."}
         </p>
@@ -79,94 +50,82 @@ export default function App() {
     );
   }
 
-  // ---------------------------------
-  // Authentication Pages
-  // ---------------------------------
-
   if (!isAuthenticated) {
-    return (
-      <AuthLayout>
-        {authPage === "login" && (
-          <Login
-            onSignup={() =>
-              setAuthPage("signup")
-            }
-            onForgotPassword={() =>
-              setAuthPage(
-                "forgot-password"
-              )
-            }
-          />
-        )}
+    if (authPage === "login") {
+      return (
+        <Login
+          onSignup={() => setAuthPage("signup")}
+          onForgotPassword={() =>
+            setAuthPage("forgot-password")
+          }
+        />
+      );
+    }
 
-        {authPage === "signup" && (
-          <Signup
-            onLogin={() =>
-              setAuthPage("login")
-            }
-          />
-        )}
+    if (authPage === "signup") {
+      return (
+        <Signup
+          onLogin={() => setAuthPage("login")}
+        />
+      );
+    }
 
-        {authPage ===
-          "forgot-password" && (
-          <ForgotPassword
-            onBack={() =>
-              setAuthPage("login")
-            }
-            onOtpSent={(email) => {
-              setResetEmail(email);
-              setAuthPage(
-                "verify-otp"
-              );
-            }}
-          />
-        )}
+    if (authPage === "forgot-password") {
+      return (
+        <ForgotPassword
+          onBack={() => setAuthPage("login")}
+          onOtpSent={(email) => {
+            setResetEmail(email);
+            setAuthPage("verify-otp");
+          }}
+        />
+      );
+    }
 
-        {authPage ===
-          "verify-otp" && (
+    if (authPage === "verify-otp") {
+      return (
+        <AuthLayout>
           <VerifyOtpForm
             email={resetEmail}
             onBack={() =>
-              setAuthPage(
-                "forgot-password"
-              )
+              setAuthPage("forgot-password")
             }
-            onVerified={(token) => {
+            onVerified={({ resetToken: token }) => {
               setResetToken(token);
-              setAuthPage(
-                "reset-password"
-              );
+              setAuthPage("reset-password");
             }}
           />
-        )}
+        </AuthLayout>
+      );
+    }
 
-        {authPage ===
-          "reset-password" && (
+    if (authPage === "reset-password") {
+      return (
+        <AuthLayout>
           <ResetPasswordForm
-            email={resetEmail}
             resetToken={resetToken}
-            onBack={() =>
-              setAuthPage("login")
-            }
-            onReset={() =>
-              setAuthPage("login")
-            }
+            onSuccess={() => {
+              setResetToken("");
+              setResetEmail("");
+              setAuthPage("login");
+            }}
           />
-        )}
-      </AuthLayout>
+        </AuthLayout>
+      );
+    }
+
+    return (
+      <Login
+        onSignup={() => setAuthPage("signup")}
+        onForgotPassword={() =>
+          setAuthPage("forgot-password")
+        }
+      />
     );
   }
 
-  // ---------------------------------
-  // Application Pages
-  // ---------------------------------
-
   const renderPage = () => {
     switch (currentPage) {
-      // ---------------------------------
-      // Billing
-      // ---------------------------------
-
       case "billing":
         return (
           <Billing
@@ -176,10 +135,6 @@ export default function App() {
             }
           />
         );
-
-      // ---------------------------------
-      // Bill History
-      // ---------------------------------
 
       case "bill-history":
         return (
@@ -191,51 +146,27 @@ export default function App() {
           />
         );
 
-      // ---------------------------------
-      // Profile
-      // ---------------------------------
-
       case "profile":
         return (
           <Profile
             onChangePassword={() =>
-              setCurrentPage(
-                "change-password"
-              )
+              setCurrentPage("change-password")
             }
           />
         );
-
-      // ---------------------------------
-      // Change Password
-      // ---------------------------------
 
       case "change-password":
         return (
           <ChangePassword
-            onBack={() =>
-              setCurrentPage("profile")
-            }
+            onBack={() => setCurrentPage("profile")}
           />
         );
-
-      // ---------------------------------
-      // Products
-      // ---------------------------------
 
       case "products":
         return <Products />;
 
-      // ---------------------------------
-      // Settings
-      // ---------------------------------
-
       case "settings":
         return <Settings />;
-
-      // ---------------------------------
-      // Default
-      // ---------------------------------
 
       default:
         return (
@@ -249,19 +180,10 @@ export default function App() {
     }
   };
 
-  // ---------------------------------
-  // Layout
-  // ---------------------------------
-
   return (
     <MainLayout
       currentPage={currentPage}
       onNavigate={(page) => {
-        /*
-         * If the user manually navigates
-         * away from an edit session, clear
-         * the selected bill.
-         */
         if (
           page !== "billing" &&
           page !== "bill-history"

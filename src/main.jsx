@@ -4,6 +4,7 @@ import { registerSW } from "virtual:pwa-register";
 
 import App from "./App";
 import "./index.css";
+import "./pwaInstall";
 
 import { ThemeProvider } from "./context/ThemeContext";
 import { LanguageProvider } from "./context/LanguageContext";
