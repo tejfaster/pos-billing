@@ -1,3 +1,4 @@
+
 import {
   createContext,
   useCallback,
@@ -7,135 +8,276 @@ import {
   useState,
 } from "react";
 
-const UnitContext = createContext(null);
+import { useAuth } from "./AuthContext";
 
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:5001/api";
+import {
+  getUnits,
+  getLocalUnit,
+  saveLocalUnit,
+  savePendingOperation,
+  getPendingOperations,
+  updatePendingOperation,
+} from "../offline/offlineStorage";
+
+const UnitContext = createContext(null);
 
 const normalizeUnit = (unit) => ({
   id: unit.id,
-  nameEn:
-    unit.name_en ??
-    unit.nameEn ??
-    "",
-  nameHi:
-    unit.name_hi ??
-    unit.nameHi ??
-    "",
-  shortName:
-    unit.short_name ??
-    unit.shortName ??
-    "",
-  type:
-    unit.type ??
-    "",
-  status:
-    unit.status ??
-    "active",
+  nameEn: unit.name_en ?? unit.nameEn ?? "",
+  nameHi: unit.name_hi ?? unit.nameHi ?? "",
+  shortName: unit.short_name ?? unit.shortName ?? "",
+  type: unit.type ?? "",
+  status: unit.status ?? "active",
+  createdAt: unit.created_at ?? unit.createdAt ?? null,
+  updatedAt: unit.updated_at ?? unit.updatedAt ?? null,
 });
+
+function createLocalId() {
+  if (globalThis.crypto?.randomUUID) {
+    return `local-${globalThis.crypto.randomUUID()}`;
+  }
+
+  return `local-${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2)}`;
+}
+
+async function queueUnitOperation({ action, recordId, payload }) {
+  return savePendingOperation({
+    localId: createLocalId(),
+    storeName: "units",
+    action,
+    recordId,
+    payload,
+    status: "pending",
+    createdAt: new Date().toISOString(),
+  });
+}
+
+async function findPendingCreate(recordId) {
+  const operations = await getPendingOperations();
+
+  return operations.find(
+    (operation) =>
+      operation.storeName === "units" &&
+      String(operation.recordId) === String(recordId) &&
+      operation.action === "create" &&
+      operation.status === "pending"
+  );
+}
 
 export function UnitProvider({ children }) {
   const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchUnits = useCallback(
-    async ({ status = "active" } = {}) => {
-      try {
-        setLoading(true);
-        setError(null);
+  const {
+    isLoading: authLoading,
+    isAuthenticated,
+  } = useAuth();
 
-        const params = new URLSearchParams();
+  const fetchUnits = useCallback(async ({ status = "active" } = {}) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        if (status) {
-          params.set("status", status);
-        }
+      const records = await getUnits();
+      const normalized = records.map(normalizeUnit);
 
-        const queryString = params.toString();
+      const filtered = status
+        ? normalized.filter((unit) => unit.status === status)
+        : normalized;
 
-        const response = await fetch(
-          `${API_URL}/units${
-            queryString
-              ? `?${queryString}`
-              : ""
-          }`,
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
-
-        const result = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            result?.message ||
-              "Failed to fetch units."
-          );
-        }
-
-        /*
-         * Backend may return:
-         *
-         * []
-         *
-         * or
-         *
-         * { data: [] }
-         *
-         * or
-         *
-         * { units: [] }
-         */
-        const unitList = Array.isArray(result)
-          ? result
-          : Array.isArray(result?.data)
-          ? result.data
-          : Array.isArray(result?.units)
-          ? result.units
-          : [];
-
-        const normalizedUnits =
-          unitList.map(normalizeUnit);
-
-        setUnits(normalizedUnits);
-
-        return normalizedUnits;
-      } catch (err) {
-        console.error(
-          "Fetch units error:",
-          err
-        );
-
-        setError(
-          err?.message ||
-            "Failed to fetch units."
-        );
-
-        return [];
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
+      setUnits(filtered);
+      return filtered;
+    } catch (err) {
+      console.error("Load local units error:", err);
+      setError(err?.message || "Failed to load units.");
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
+    if (authLoading || !isAuthenticated) return;
     fetchUnits();
-  }, [fetchUnits]);
+  }, [authLoading, isAuthenticated, fetchUnits]);
 
   const getUnit = useCallback(
-    (id) => {
-      return (
-        units.find(
-          (unit) =>
-            String(unit.id) === String(id)
-        ) || null
-      );
-    },
+    (id) =>
+      units.find((unit) => String(unit.id) === String(id)) || null,
     [units]
   );
+
+  const addUnit = useCallback(async (unitData) => {
+    setError(null);
+
+    const nameEn = String(
+      unitData.nameEn ?? unitData.name_en ?? ""
+    ).trim();
+
+    const shortName = String(
+      unitData.shortName ?? unitData.short_name ?? ""
+    ).trim();
+
+    const type = String(unitData.type ?? "").trim();
+
+    if (!nameEn || !shortName || !type) {
+      throw new Error(
+        "Unit name, short name, and type are required."
+      );
+    }
+
+    const now = new Date().toISOString();
+
+    const unit = normalizeUnit({
+      id: createLocalId(),
+      nameEn,
+      nameHi: unitData.nameHi ?? unitData.name_hi ?? "",
+      shortName,
+      type,
+      status: "active",
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    await saveLocalUnit(unit);
+
+    await queueUnitOperation({
+      action: "create",
+      recordId: unit.id,
+      payload: {
+        nameEn: unit.nameEn,
+        nameHi: unit.nameHi || null,
+        shortName: unit.shortName,
+        type: unit.type,
+      },
+    });
+
+    setUnits((current) => [...current, unit]);
+    return unit;
+  }, []);
+
+  const updateUnit = useCallback(async (id, unitData) => {
+    setError(null);
+
+    const stored = await getLocalUnit(id);
+
+    if (!stored) {
+      throw new Error("Unit not found locally.");
+    }
+
+    const current = normalizeUnit(stored);
+
+    const updated = normalizeUnit({
+      ...current,
+      ...unitData,
+      id: current.id,
+      updatedAt: new Date().toISOString(),
+    });
+
+    if (!updated.nameEn || !updated.shortName || !updated.type) {
+      throw new Error(
+        "Unit name, short name, and type are required."
+      );
+    }
+
+    const payload = {};
+
+    if (unitData.nameEn !== undefined) {
+      payload.nameEn = updated.nameEn;
+    }
+    if (unitData.nameHi !== undefined) {
+      payload.nameHi = updated.nameHi || null;
+    }
+    if (unitData.shortName !== undefined) {
+      payload.shortName = updated.shortName;
+    }
+    if (unitData.type !== undefined) {
+      payload.type = updated.type;
+    }
+    if (unitData.status !== undefined) {
+      payload.status = updated.status;
+    }
+
+    await saveLocalUnit(updated);
+
+    const pendingCreate = await findPendingCreate(id);
+
+    if (pendingCreate) {
+      await updatePendingOperation({
+        ...pendingCreate,
+        payload: {
+          ...pendingCreate.payload,
+          nameEn: updated.nameEn,
+          nameHi: updated.nameHi || null,
+          shortName: updated.shortName,
+          type: updated.type,
+        },
+      });
+    } else {
+      await queueUnitOperation({
+        action: "update",
+        recordId: id,
+        payload,
+      });
+    }
+
+    setUnits((currentUnits) => {
+      if (updated.status !== "active") {
+        return currentUnits.filter(
+          (unit) => String(unit.id) !== String(id)
+        );
+      }
+
+      const exists = currentUnits.some(
+        (unit) => String(unit.id) === String(id)
+      );
+
+      return exists
+        ? currentUnits.map((unit) =>
+            String(unit.id) === String(id) ? updated : unit
+          )
+        : [...currentUnits, updated];
+    });
+
+    return updated;
+  }, []);
+
+  const removeUnit = useCallback(async (id) => {
+    setError(null);
+
+    const stored = await getLocalUnit(id);
+
+    if (!stored) {
+      throw new Error("Unit not found locally.");
+    }
+
+    const current = normalizeUnit(stored);
+
+    const inactive = {
+      ...current,
+      status: "inactive",
+      updatedAt: new Date().toISOString(),
+    };
+
+    await saveLocalUnit(inactive);
+
+    await queueUnitOperation({
+      action: "deactivate",
+      recordId: id,
+      payload: {},
+    });
+
+    setUnits((currentUnits) =>
+      currentUnits.filter(
+        (unit) => String(unit.id) !== String(id)
+      )
+    );
+
+    return inactive;
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -144,6 +286,9 @@ export function UnitProvider({ children }) {
       error,
       fetchUnits,
       getUnit,
+      addUnit,
+      updateUnit,
+      removeUnit,
     }),
     [
       units,
@@ -151,6 +296,9 @@ export function UnitProvider({ children }) {
       error,
       fetchUnits,
       getUnit,
+      addUnit,
+      updateUnit,
+      removeUnit,
     ]
   );
 

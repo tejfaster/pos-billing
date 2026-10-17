@@ -20,6 +20,7 @@ export default function SignupForm({
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
+    billPrefix: "",
     phone: "",
     email: "",
     password: "",
@@ -60,6 +61,25 @@ export default function SignupForm({
     }
   };
 
+  const handleBillPrefixChange = (event) => {
+    const value = event.target.value
+      .replace(/[^a-zA-Z]/g, "")
+      .slice(0, 3)
+      .toUpperCase();
+
+    setFormData((previous) => ({
+      ...previous,
+      billPrefix: value,
+    }));
+
+    if (errors.billPrefix) {
+      setErrors((previous) => ({
+        ...previous,
+        billPrefix: "",
+      }));
+    }
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
 
@@ -74,6 +94,12 @@ export default function SignupForm({
       formData.lastName,
       t("lastName")
     );
+
+    const billPrefixError =
+      formData.billPrefix.length === 3 &&
+      /^[A-Za-z]{3}$/.test(formData.billPrefix)
+        ? ""
+        : t("invalidBillPrefix");
 
     const phoneError = validatePhone(
       formData.phone
@@ -99,6 +125,10 @@ export default function SignupForm({
 
     if (lastNameError) {
       newErrors.lastName = lastNameError;
+    }
+
+    if (billPrefixError) {
+      newErrors.billPrefix = billPrefixError;
     }
 
     if (phoneError) {
@@ -127,6 +157,9 @@ export default function SignupForm({
     onSubmit({
       firstName: formData.firstName.trim(),
       lastName: formData.lastName.trim(),
+      billPrefix: formData.billPrefix
+        .trim()
+        .toUpperCase(),
       phone: formData.phone.trim(),
       email: formData.email.trim(),
       password: formData.password,
@@ -257,6 +290,45 @@ export default function SignupForm({
             </p>
           )}
         </div>
+      </div>
+
+      {/* Bill Prefix */}
+      <div>
+        <label
+          htmlFor="billPrefix"
+          className="mb-1.5 block text-sm font-medium"
+        >
+          {t("billPrefix")}
+        </label>
+
+        <input
+          id="billPrefix"
+          name="billPrefix"
+          type="text"
+          value={formData.billPrefix}
+          onChange={handleBillPrefixChange}
+          placeholder={t("billPrefixPlaceholder")}
+          maxLength={3}
+          autoComplete="off"
+          disabled={isLoading}
+          className={inputClass("billPrefix")}
+        />
+
+        <p className="mt-1.5 text-xs text-[var(--muted)]">
+          {t("billPrefixDescription")}
+        </p>
+
+        {errors.billPrefix && (
+          <p
+            className="
+              mt-1.5
+              text-xs
+              text-[var(--danger)]
+            "
+          >
+            {errors.billPrefix}
+          </p>
+        )}
       </div>
 
       {/* Phone */}
@@ -695,23 +767,23 @@ export default function SignupForm({
         </span>
 
         <button
-  type="button"
-  onClick={onLogin}
-  disabled={isLoading}
-  className="
-    text-sm
-    font-semibold
-    text-[var(--foreground)]
-    underline
-    underline-offset-2
-    transition
-    hover:opacity-70
-    disabled:cursor-not-allowed
-    disabled:opacity-50
-  "
->
-  {t("login")}
-</button>
+          type="button"
+          onClick={onLogin}
+          disabled={isLoading}
+          className="
+            text-sm
+            font-semibold
+            text-[var(--foreground)]
+            underline
+            underline-offset-2
+            transition
+            hover:opacity-70
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+          "
+        >
+          {t("login")}
+        </button>
       </div>
     </form>
   );
