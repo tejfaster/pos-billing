@@ -1,4 +1,3 @@
-
 import {
   createContext,
   useCallback,
@@ -18,6 +17,8 @@ import {
   getPendingOperations,
   updatePendingOperation,
 } from "../offline/offlineStorage";
+
+import { syncSoon } from "../offline/syncManager";
 
 const UnitContext = createContext(null);
 
@@ -99,9 +100,23 @@ export function UnitProvider({ children }) {
     }
   }, []);
 
+  // Load from IndexedDB after login, and reload after every sync.
   useEffect(() => {
-    if (authLoading || !isAuthenticated) return;
+    if (authLoading || !isAuthenticated) {
+      return undefined;
+    }
+
     fetchUnits();
+
+    const reload = () => {
+      fetchUnits();
+    };
+
+    window.addEventListener("catalogue:synced", reload);
+
+    return () => {
+      window.removeEventListener("catalogue:synced", reload);
+    };
   }, [authLoading, isAuthenticated, fetchUnits]);
 
   const getUnit = useCallback(
@@ -156,6 +171,9 @@ export function UnitProvider({ children }) {
     });
 
     setUnits((current) => [...current, unit]);
+
+    syncSoon();
+
     return unit;
   }, []);
 
@@ -242,6 +260,8 @@ export function UnitProvider({ children }) {
         : [...currentUnits, updated];
     });
 
+    syncSoon();
+
     return updated;
   }, []);
 
@@ -275,6 +295,8 @@ export function UnitProvider({ children }) {
         (unit) => String(unit.id) !== String(id)
       )
     );
+
+    syncSoon();
 
     return inactive;
   }, []);

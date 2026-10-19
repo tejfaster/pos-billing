@@ -20,6 +20,7 @@ const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 const LAST_SYNC_KEY = "catalogue:lastSync";
 const ID_MAP_KEY = "catalogue:idMap";
+const REQUEST_TIMEOUT_MS = 30000;
 
 const STORE_CONFIG = {
   categories: {
@@ -193,14 +194,37 @@ function resolvePayload(storeName, payload, mappings) {
 }
 
 async function apiRequest(path, options = {}) {
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(
+    () => controller.abort(),
+    REQUEST_TIMEOUT_MS
+  );
+
+  let response;
+
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      ...options,
+      signal: controller.signal,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    });
+  } catch (error) {
+    const networkError = new Error(
+      error?.name === "AbortError"
+        ? "The server took too long to respond."
+        : "Unable to connect to the server."
+    );
+
+    networkError.code = "NETWORK_ERROR";
+
+    throw networkError;
+  } finally {
+    clearTimeout(timer);
+  }
 
   let result;
 
@@ -218,6 +242,10 @@ async function apiRequest(path, options = {}) {
     );
 
     error.status = response.status;
+
+    if (response.status === 401) {
+      error.code = "UNAUTHORIZED";
+    }
 
     throw error;
   }
@@ -613,4 +641,15 @@ export function syncCatalogue() {
   }
 
   return inFlight;
+}
+
+// Fire-and-forget sync after a local change, when online.
+export function syncSoon() {
+  if (!navigator.onLine) {
+    return;
+  }
+
+  syncCatalogue().catch((error) => {
+    console.error("Background sync failed:", error);
+  });
 }
