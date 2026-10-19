@@ -1,27 +1,46 @@
-const API_URL =
-  import.meta.env.VITE_API_URL || "/api";
+const API_URL = import.meta.env.VITE_API_URL || "/api";
+const DEFAULT_TIMEOUT_MS = 30000;
+
+function createError(message, code, status) {
+  const error = new Error(message);
+  error.code = code;
+
+  if (status) {
+    error.status = status;
+  }
+
+  return error;
+}
+
+function codeFromStatus(status) {
+  if (status === 401) return "UNAUTHORIZED";
+  if (status === 403) return "FORBIDDEN";
+  if (status >= 500) return "SERVER_ERROR";
+  return "UNKNOWN_ERROR";
+}
 
 async function request(endpoint, options = {}) {
+  const { timeoutMs = DEFAULT_TIMEOUT_MS, ...fetchOptions } = options;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
   let response;
 
   try {
-    response = await fetch(
-      `${API_URL}${endpoint}`,
-      {
-        ...options,
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          ...(options.headers || {}),
-        },
-      }
-    );
-  } catch (error) {
-    const networkError = new Error(
-      "Unable to connect to the server."
-    );
-    networkError.code = "NETWORK_ERROR";
-    throw networkError;
+    response = await fetch(`${API_URL}${endpoint}`, {
+      ...fetchOptions,
+      signal: controller.signal,
+      credentials: "include",
+      headers: {
+        ...(fetchOptions.body ? { "Content-Type": "application/json" } : {}),
+        ...(fetchOptions.headers || {}),
+      },
+    });
+  } catch {
+    throw createError("Unable to connect to the server.", "NETWORK_ERROR");
+  } finally {
+    clearTimeout(timer);
   }
 
   let data = null;
@@ -33,17 +52,11 @@ async function request(endpoint, options = {}) {
   }
 
   if (!response.ok) {
-    const error = new Error(
-      data?.message ||
-        "Something went wrong. Please try again."
+    throw createError(
+      data?.message || "Something went wrong. Please try again.",
+      data?.code || codeFromStatus(response.status),
+      response.status
     );
-
-    error.code =
-      data?.code || "UNKNOWN_ERROR";
-
-    error.status = response.status;
-
-    throw error;
   }
 
   return data;
@@ -51,27 +64,35 @@ async function request(endpoint, options = {}) {
 
 const authService = {
   async login(credentials) {
-    const response = await request(
-      "/auth/login",
-      {
-        method: "POST",
-        body: JSON.stringify(credentials),
-      }
-    );
+    const response = await request("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(credentials),
+    });
 
-    return response.user;
+    // Confirm the browser actually kept the session cookie.
+    try {
+      await request("/auth/me", { timeoutMs: 8000 });
+    } catch (error) {
+      if (error.code === "UNAUTHORIZED") {
+        throw createError(
+          "Login succeeded but the browser blocked the session cookie.",
+          "COOKIE_BLOCKED",
+          401
+        );
+      }
+      // Network error or 5xx: don't fail the login because of the check.
+    }
+
+    return response?.user;
   },
 
   async signup(userData) {
-    const response = await request(
-      "/auth/signup",
-      {
-        method: "POST",
-        body: JSON.stringify(userData),
-      }
-    );
+    const response = await request("/auth/signup", {
+      method: "POST",
+      body: JSON.stringify(userData),
+    });
 
-    return response.user;
+    return response?.user;
   },
 
   async logout() {
@@ -81,51 +102,37 @@ const authService = {
   },
 
   async getCurrentUser() {
-    const response = await request(
-      "/auth/me"
-    );
+    const response = await request("/auth/me", { timeoutMs: 5000 });
 
-    return response.user;
+    return response?.user ?? null;
   },
 
   async changePassword(passwordData) {
-    return request(
-      "/auth/change-password",
-      {
-        method: "POST",
-        body: JSON.stringify(passwordData),
-      }
-    );
+    return request("/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify(passwordData),
+    });
   },
 
   async requestPasswordReset(emailData) {
-    return request(
-      "/auth/password-reset/request",
-      {
-        method: "POST",
-        body: JSON.stringify(emailData),
-      }
-    );
+    return request("/auth/password-reset/request", {
+      method: "POST",
+      body: JSON.stringify(emailData),
+    });
   },
 
   async verifyPasswordResetOtp(otpData) {
-    return request(
-      "/auth/password-reset/verify",
-      {
-        method: "POST",
-        body: JSON.stringify(otpData),
-      }
-    );
+    return request("/auth/password-reset/verify", {
+      method: "POST",
+      body: JSON.stringify(otpData),
+    });
   },
 
   async confirmPasswordReset(resetData) {
-    return request(
-      "/auth/password-reset/confirm",
-      {
-        method: "POST",
-        body: JSON.stringify(resetData),
-      }
-    );
+    return request("/auth/password-reset/confirm", {
+      method: "POST",
+      body: JSON.stringify(resetData),
+    });
   },
 };
 
