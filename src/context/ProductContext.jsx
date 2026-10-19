@@ -9,7 +9,7 @@ import {
 
 import { useAuth } from "./AuthContext";
 import { getProducts } from "../offline/offlineStorage";
-import { syncCatalogue } from "../offline/syncManager";
+import { syncSoon } from "../offline/syncManager";
 
 const ProductContext = createContext(null);
 
@@ -49,6 +49,20 @@ const normalizeProduct = (product) => ({
 
   updatedAt: product.updated_at ?? product.updatedAt ?? null,
 });
+
+// A category or unit created offline has a temporary ID until it syncs.
+// The backend cannot accept that ID, so product changes must wait.
+function isLocalId(id) {
+  return typeof id === "string" && id.startsWith("local-");
+}
+
+function assertSyncedReferences({ categoryId, unitId }) {
+  if (isLocalId(categoryId) || isLocalId(unitId)) {
+    throw new Error(
+      "The category or unit is still syncing. Try again in a moment."
+    );
+  }
+}
 
 export function ProductProvider({ children }) {
   const [products, setProducts] = useState([]);
@@ -130,37 +144,15 @@ export function ProductProvider({ children }) {
   );
 
   /*
-   * After login:
-   * 1. Read IndexedDB.
-   * 2. If the device has no products yet, run the first sync.
-   * 3. Reload whenever any sync completes.
+   * Load from IndexedDB after login and reload after every sync.
+   * App.jsx runs the first catalogue sync after authentication.
    */
   useEffect(() => {
     if (authLoading || !isAuthenticated) {
       return undefined;
     }
 
-    let cancelled = false;
-
-    async function init() {
-      const local = await fetchProducts();
-
-      if (cancelled || local.length > 0 || !navigator.onLine) {
-        return;
-      }
-
-      try {
-        await syncCatalogue();
-      } catch (err) {
-        console.error("Initial sync failed:", err);
-
-        if (!cancelled) {
-          setError(err?.message || "Initial sync failed.");
-        }
-      }
-    }
-
-    init();
+    fetchProducts();
 
     const reload = () => {
       fetchProducts();
@@ -169,7 +161,6 @@ export function ProductProvider({ children }) {
     window.addEventListener("catalogue:synced", reload);
 
     return () => {
-      cancelled = true;
       window.removeEventListener("catalogue:synced", reload);
     };
   }, [authLoading, isAuthenticated, fetchProducts]);
@@ -177,11 +168,17 @@ export function ProductProvider({ children }) {
   /*
    * Add product
    *
-   * Admin CRUD remains online-only.
+   * Admin CRUD remains online-only. After success, a sync updates
+   * IndexedDB so billing search sees the change.
    */
   const addProduct = useCallback(async (product) => {
     try {
       setError(null);
+
+      assertSyncedReferences({
+        categoryId: product.categoryId,
+        unitId: product.unitId,
+      });
 
       const response = await fetch(`${API_URL}/products`, {
         method: "POST",
@@ -209,6 +206,8 @@ export function ProductProvider({ children }) {
 
       setProducts((current) => [createdProduct, ...current]);
 
+      syncSoon();
+
       return createdProduct;
     } catch (err) {
       console.error("Add product error:", err);
@@ -225,6 +224,11 @@ export function ProductProvider({ children }) {
   const updateProduct = useCallback(async (id, product) => {
     try {
       setError(null);
+
+      assertSyncedReferences({
+        categoryId: product.categoryId,
+        unitId: product.unitId,
+      });
 
       const body = {};
 
@@ -277,6 +281,8 @@ export function ProductProvider({ children }) {
         )
       );
 
+      syncSoon();
+
       return updatedProduct;
     } catch (err) {
       console.error("Update product error:", err);
@@ -311,6 +317,8 @@ export function ProductProvider({ children }) {
           (product) => String(product.id) !== String(id)
         )
       );
+
+      syncSoon();
 
       return result;
     } catch (err) {
