@@ -1,4 +1,3 @@
-
 import {
   createContext,
   useCallback,
@@ -18,6 +17,8 @@ import {
   getPendingOperations,
   updatePendingOperation,
 } from "../offline/offlineStorage";
+
+import { syncSoon } from "../offline/syncManager";
 
 const CategoryContext = createContext(null);
 
@@ -124,12 +125,23 @@ export function CategoryProvider({ children }) {
     [loadLocalCategories]
   );
 
+  // Load from IndexedDB after login, and reload after every sync.
   useEffect(() => {
     if (authLoading || !isAuthenticated) {
-      return;
+      return undefined;
     }
 
     loadLocalCategories();
+
+    const reload = () => {
+      loadLocalCategories();
+    };
+
+    window.addEventListener("catalogue:synced", reload);
+
+    return () => {
+      window.removeEventListener("catalogue:synced", reload);
+    };
   }, [
     authLoading,
     isAuthenticated,
@@ -183,8 +195,6 @@ export function CategoryProvider({ children }) {
           },
         });
       } catch (err) {
-        // Avoid leaving an unqueued category behind.
-        // If deletion fails, the next local refresh may show it.
         console.error(
           "Failed to queue category creation:",
           err
@@ -198,6 +208,8 @@ export function CategoryProvider({ children }) {
         ),
         category,
       ]);
+
+      syncSoon();
 
       return category;
     },
@@ -268,12 +280,16 @@ export function CategoryProvider({ children }) {
           : [...currentCategories, next];
       });
 
+      syncSoon();
+
       return next;
     },
     []
   );
 
   // Deactivation is local-first; the sync manager will send DELETE.
+  // If the category has never reached the backend, its create stays
+  // queued so the temporary ID can be mapped before it is deactivated.
   const removeCategory = useCallback(
     async (id) => {
       const existing = await getLocalCategory(id);
@@ -292,29 +308,19 @@ export function CategoryProvider({ children }) {
 
       await saveLocalCategory(inactiveCategory);
 
-      const pendingCreate = await findPendingCreate(id);
-
-      if (pendingCreate) {
-        // It has never reached the backend. Keep the create queued
-        // so its temporary ID can be mapped, then deactivate it.
-        await queueCategoryOperation({
-          action: "deactivate",
-          recordId: id,
-          payload: {},
-        });
-      } else {
-        await queueCategoryOperation({
-          action: "deactivate",
-          recordId: id,
-          payload: {},
-        });
-      }
+      await queueCategoryOperation({
+        action: "deactivate",
+        recordId: id,
+        payload: {},
+      });
 
       setCategories((currentCategories) =>
         currentCategories.filter(
           (category) => String(category.id) !== String(id)
         )
       );
+
+      syncSoon();
 
       return inactiveCategory;
     },
