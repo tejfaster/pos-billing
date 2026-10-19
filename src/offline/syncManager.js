@@ -1,4 +1,3 @@
-
 import {
   saveCatalogue,
   getPendingOperations,
@@ -17,7 +16,7 @@ import {
 
 import { dbPromise } from "./db";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 const LAST_SYNC_KEY = "catalogue:lastSync";
 const ID_MAP_KEY = "catalogue:idMap";
@@ -212,11 +211,15 @@ async function apiRequest(path, options = {}) {
   }
 
   if (!response.ok) {
-    throw new Error(
+    const error = new Error(
       result?.message ||
         result?.error ||
         `Request failed with status ${response.status}.`
     );
+
+    error.status = response.status;
+
+    throw error;
   }
 
   if (result?.success === false) {
@@ -351,8 +354,6 @@ async function processCreate(operation, mappings) {
       item.action === "deactivate"
   );
 
-  const localRecord = await config.getLocal(localId);
-
   await saveServerRecord(
     operation.storeName,
     serverRecord,
@@ -370,9 +371,6 @@ async function processCreate(operation, mappings) {
         status: "inactive",
       });
     }
-  } else if (localRecord && operation.storeName !== "products") {
-    // Server data remains authoritative for successfully-created records.
-    // No extra local fields are copied over the server response.
   }
 
   await moveRemainingOperationsToServerId(
@@ -546,7 +544,7 @@ export async function getLastSync() {
   return getMetadata(LAST_SYNC_KEY);
 }
 
-export async function syncCatalogue() {
+async function runSync() {
   if (!navigator.onLine) {
     throw new Error("No internet connection.");
   }
@@ -597,5 +595,22 @@ export async function syncCatalogue() {
 
   await setMetadata(LAST_SYNC_KEY, syncData);
 
+  // Let the contexts reload from IndexedDB.
+  window.dispatchEvent(new CustomEvent("catalogue:synced"));
+
   return syncData;
+}
+
+// Only one sync runs at a time. Callers that arrive while one is
+// running receive the same result.
+let inFlight = null;
+
+export function syncCatalogue() {
+  if (!inFlight) {
+    inFlight = runSync().finally(() => {
+      inFlight = null;
+    });
+  }
+
+  return inFlight;
 }

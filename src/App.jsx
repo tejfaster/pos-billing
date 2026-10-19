@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 
 import MainLayout from "./components/layout/MainLayout";
@@ -18,12 +19,20 @@ import AuthLayout from "./features/authentication/components/AuthLayout";
 
 import { useAuth } from "./context/AuthContext";
 import { useLanguage } from "./context/LanguageContext";
+import { useProducts } from "./context/ProductContext";
+import { useCategories } from "./context/CategoryContext";
+import { useUnits } from "./context/UnitContext";
 
+import { syncCatalogue } from "./offline/syncManager";
 import { startAutomaticSyncScheduler } from "./offline/syncScheduler";
 
 export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
   const { t } = useLanguage();
+
+  const { fetchProducts } = useProducts();
+  const { fetchCategories } = useCategories();
+  const { fetchUnits } = useUnits();
 
   const [currentPage, setCurrentPage] = useState("billing");
   const [editingBill, setEditingBill] = useState(null);
@@ -32,13 +41,55 @@ export default function App() {
   const [resetEmail, setResetEmail] = useState("");
   const [resetToken, setResetToken] = useState("");
 
+  // Download the backend catalogue after authentication.
+  // Save it to IndexedDB through syncCatalogue(), then refresh
+  // the React contexts so the latest data appears in the UI.
   useEffect(() => {
     if (isLoading || !isAuthenticated) {
       return undefined;
     }
 
-    return startAutomaticSyncScheduler();
-  }, [isLoading, isAuthenticated]);
+    let cancelled = false;
+
+    const loadCatalogue = async () => {
+      if (!navigator.onLine) {
+        // Offline: existing contexts continue using IndexedDB.
+        return;
+      }
+
+      try {
+        await syncCatalogue();
+
+        if (cancelled) {
+          return;
+        }
+
+        await Promise.all([
+          fetchProducts(),
+          fetchCategories(),
+          fetchUnits(),
+        ]);
+      } catch (error) {
+        console.error("Initial catalogue sync failed:", error);
+        // Keep the locally cached catalogue available.
+      }
+    };
+
+    void loadCatalogue();
+
+    const stopScheduler = startAutomaticSyncScheduler();
+
+    return () => {
+      cancelled = true;
+      stopScheduler?.();
+    };
+  }, [
+    isLoading,
+    isAuthenticated,
+    fetchProducts,
+    fetchCategories,
+    fetchUnits,
+  ]);
 
   if (isLoading) {
     return (
